@@ -1,0 +1,424 @@
+   1              		.cpu cortex-a53
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 4
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"clkgen.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.clk_gen_enable,"ax",%progbits
+  16              		.align	2
+  17              		.global	clk_gen_enable
+  18              		.syntax unified
+  19              		.arm
+  20              		.fpu softvfp
+  22              	clk_gen_enable:
+  23              	.LFB0:
+  24              		.file 1 "../lib/x6818/clkgen.c"
+   1:../lib/x6818/clkgen.c **** /*
+   2:../lib/x6818/clkgen.c ****  * clkgen.c
+   3:../lib/x6818/clkgen.c ****  *
+   4:../lib/x6818/clkgen.c ****  *  Created on: 2017年9月28日
+   5:../lib/x6818/clkgen.c ****  *      Author: lucius
+   6:../lib/x6818/clkgen.c ****  */
+   7:../lib/x6818/clkgen.c **** 
+   8:../lib/x6818/clkgen.c **** #include "x6818/clkgen.h"
+   9:../lib/x6818/clkgen.c **** 
+  10:../lib/x6818/clkgen.c **** #define CLK_GEN_ENABLE (1u)
+  11:../lib/x6818/clkgen.c **** #define CLK_GEN_DISABLE (0u)
+  12:../lib/x6818/clkgen.c **** 
+  13:../lib/x6818/clkgen.c **** typedef enum {
+  14:../lib/x6818/clkgen.c **** 	CLK_GEN_LEVEL_0,
+  15:../lib/x6818/clkgen.c **** 	CLK_GEN_LEVEL_1,
+  16:../lib/x6818/clkgen.c **** 	CLK_GEN_LEVEL_2,
+  17:../lib/x6818/clkgen.c **** } clk_gen_level_t;
+  18:../lib/x6818/clkgen.c **** 
+  19:../lib/x6818/clkgen.c **** typedef struct {
+  20:../lib/x6818/clkgen.c **** 	char * name;
+  21:../lib/x6818/clkgen.c **** 	clk_gen_level_t level;
+  22:../lib/x6818/clkgen.c **** 	uint32_t base_addr;
+  23:../lib/x6818/clkgen.c **** } pll_gen_predef_t;
+  24:../lib/x6818/clkgen.c **** 
+  25:../lib/x6818/clkgen.c **** #define _CLK_GEN_PREDEF_ARRAY(_module, _level, _base, _offset) \
+  26:../lib/x6818/clkgen.c **** 		[CLK_GEN_ ## _module] = { \
+  27:../lib/x6818/clkgen.c **** 				.name = #_module , \
+  28:../lib/x6818/clkgen.c **** 				.level = CLK_GEN_LEVEL_ ## _level, \
+  29:../lib/x6818/clkgen.c **** 				.base_addr = (_base) + (_offset)\
+  30:../lib/x6818/clkgen.c **** 		},
+  31:../lib/x6818/clkgen.c **** 
+  32:../lib/x6818/clkgen.c **** const pll_gen_predef_t pll_gen_predef[] = {
+  33:../lib/x6818/clkgen.c **** 		_CLK_GEN_DEFINE(_CLK_GEN_PREDEF_ARRAY)
+  34:../lib/x6818/clkgen.c **** };
+  35:../lib/x6818/clkgen.c **** 
+  36:../lib/x6818/clkgen.c **** typedef union {
+  37:../lib/x6818/clkgen.c **** 	struct {
+  38:../lib/x6818/clkgen.c **** 		volatile uint32_t reserved0 : 2;
+  39:../lib/x6818/clkgen.c **** 		volatile uint32_t clkenb : 1;
+  40:../lib/x6818/clkgen.c **** 		volatile uint32_t reserved1 : 29;
+  41:../lib/x6818/clkgen.c **** 	} reg_field;
+  42:../lib/x6818/clkgen.c **** 	volatile uint32_t reg_value;
+  43:../lib/x6818/clkgen.c **** } clkenb_t;
+  44:../lib/x6818/clkgen.c **** 
+  45:../lib/x6818/clkgen.c **** typedef union {
+  46:../lib/x6818/clkgen.c **** 	struct {
+  47:../lib/x6818/clkgen.c **** 		volatile uint32_t reserved0 : 1;
+  48:../lib/x6818/clkgen.c **** 		volatile uint32_t outclkinv0 : 1;
+  49:../lib/x6818/clkgen.c **** 		volatile uint32_t clksrcsel0 : 3;
+  50:../lib/x6818/clkgen.c **** 		volatile uint32_t clkdiv0	 : 8;
+  51:../lib/x6818/clkgen.c **** 		volatile uint32_t reserved1	 : 2;
+  52:../lib/x6818/clkgen.c **** 		volatile uint32_t outclkenb	 : 1;
+  53:../lib/x6818/clkgen.c **** 		volatile uint32_t reserved2	 : 16;
+  54:../lib/x6818/clkgen.c **** 	} reg_field;
+  55:../lib/x6818/clkgen.c **** 	volatile uint32_t reg_value;
+  56:../lib/x6818/clkgen.c **** } clkgen0l_t;
+  57:../lib/x6818/clkgen.c **** 
+  58:../lib/x6818/clkgen.c **** typedef union {
+  59:../lib/x6818/clkgen.c **** 	struct {
+  60:../lib/x6818/clkgen.c **** 		volatile uint32_t outclksel : 1;
+  61:../lib/x6818/clkgen.c **** 		volatile uint32_t outclkinv1 : 1;
+  62:../lib/x6818/clkgen.c **** 		volatile uint32_t clksrcsel1 : 3;
+  63:../lib/x6818/clkgen.c **** 		volatile uint32_t clkdiv1	 : 8;
+  64:../lib/x6818/clkgen.c **** 		volatile uint32_t reserved0	 : 19;
+  65:../lib/x6818/clkgen.c **** 	} reg_field;
+  66:../lib/x6818/clkgen.c **** 	volatile uint32_t reg_value;
+  67:../lib/x6818/clkgen.c **** } clkgen1l_t;
+  68:../lib/x6818/clkgen.c **** 
+  69:../lib/x6818/clkgen.c **** typedef struct {
+  70:../lib/x6818/clkgen.c **** 	volatile clkenb_t clkenb;
+  71:../lib/x6818/clkgen.c **** 	volatile clkgen0l_t clkgen0l;
+  72:../lib/x6818/clkgen.c **** 	volatile uint32_t reserved[1];
+  73:../lib/x6818/clkgen.c **** 	volatile clkgen1l_t clkgen1l;
+  74:../lib/x6818/clkgen.c **** } clk_gen_register_t;
+  75:../lib/x6818/clkgen.c **** 
+  76:../lib/x6818/clkgen.c **** void clk_gen_enable(clk_gen_index_t index)
+  77:../lib/x6818/clkgen.c **** {
+  25              		.loc 1 77 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              		@ link register save eliminated.
+  30              	.LVL0:
+  78:../lib/x6818/clkgen.c **** 	clk_gen_register_t *cur_pll_gen = (clk_gen_register_t *)pll_gen_predef[index].base_addr;
+  31              		.loc 1 78 0
+  32 0000 0C30A0E3 		mov	r3, #12
+  33 0004 14209FE5 		ldr	r2, .L2
+  34 0008 932020E0 		mla	r0, r3, r0, r2
+  35              	.LVL1:
+  36 000c 082090E5 		ldr	r2, [r0, #8]
+  37              	.LVL2:
+  79:../lib/x6818/clkgen.c **** 	cur_pll_gen->clkenb.reg_field.clkenb = CLK_GEN_ENABLE;
+  38              		.loc 1 79 0
+  39 0010 003092E5 		ldr	r3, [r2]
+  40 0014 043083E3 		orr	r3, r3, #4
+  41 0018 003082E5 		str	r3, [r2]
+  42 001c 1EFF2FE1 		bx	lr
+  43              	.L3:
+  44              		.align	2
+  45              	.L2:
+  46 0020 00000000 		.word	.LANCHOR0
+  47              		.cfi_endproc
+  48              	.LFE0:
+  50              		.section	.text.clk_gen_disable,"ax",%progbits
+  51              		.align	2
+  52              		.global	clk_gen_disable
+  53              		.syntax unified
+  54              		.arm
+  55              		.fpu softvfp
+  57              	clk_gen_disable:
+  58              	.LFB1:
+  80:../lib/x6818/clkgen.c **** }
+  81:../lib/x6818/clkgen.c **** 
+  82:../lib/x6818/clkgen.c **** void clk_gen_disable(clk_gen_index_t index)
+  83:../lib/x6818/clkgen.c **** {
+  59              		.loc 1 83 0
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 0
+  62              		@ frame_needed = 0, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+  64              	.LVL3:
+  84:../lib/x6818/clkgen.c **** 	clk_gen_register_t *cur_pll_gen = (clk_gen_register_t *)pll_gen_predef[index].base_addr;
+  65              		.loc 1 84 0
+  66 0000 0C30A0E3 		mov	r3, #12
+  67 0004 14209FE5 		ldr	r2, .L5
+  68 0008 932020E0 		mla	r0, r3, r0, r2
+  69              	.LVL4:
+  70 000c 083090E5 		ldr	r3, [r0, #8]
+  71              	.LVL5:
+  85:../lib/x6818/clkgen.c **** 	cur_pll_gen->clkenb.reg_field.clkenb = CLK_GEN_DISABLE;
+  72              		.loc 1 85 0
+  73 0010 002093E5 		ldr	r2, [r3]
+  74 0014 1F21C2E7 		bfc	r2, #2, #1
+  75 0018 002083E5 		str	r2, [r3]
+  76 001c 1EFF2FE1 		bx	lr
+  77              	.L6:
+  78              		.align	2
+  79              	.L5:
+  80 0020 00000000 		.word	.LANCHOR0
+  81              		.cfi_endproc
+  82              	.LFE1:
+  84              		.section	.text.clk_gen_isEnable,"ax",%progbits
+  85              		.align	2
+  86              		.global	clk_gen_isEnable
+  87              		.syntax unified
+  88              		.arm
+  89              		.fpu softvfp
+  91              	clk_gen_isEnable:
+  92              	.LFB2:
+  86:../lib/x6818/clkgen.c **** }
+  87:../lib/x6818/clkgen.c **** 
+  88:../lib/x6818/clkgen.c **** uint32_t clk_gen_isEnable(clk_gen_index_t index)
+  89:../lib/x6818/clkgen.c **** {
+  93              		.loc 1 89 0
+  94              		.cfi_startproc
+  95              		@ args = 0, pretend = 0, frame = 0
+  96              		@ frame_needed = 0, uses_anonymous_args = 0
+  97              		@ link register save eliminated.
+  98              	.LVL6:
+  90:../lib/x6818/clkgen.c **** 	clk_gen_register_t *cur_pll_gen = (clk_gen_register_t *)pll_gen_predef[index].base_addr;
+  99              		.loc 1 90 0
+ 100 0000 0C30A0E3 		mov	r3, #12
+ 101 0004 10209FE5 		ldr	r2, .L8
+ 102 0008 932020E0 		mla	r0, r3, r0, r2
+ 103              	.LVL7:
+ 104 000c 083090E5 		ldr	r3, [r0, #8]
+ 105              	.LVL8:
+  91:../lib/x6818/clkgen.c **** 	return cur_pll_gen->clkenb.reg_field.clkenb;
+ 106              		.loc 1 91 0
+ 107 0010 000093E5 		ldr	r0, [r3]
+  92:../lib/x6818/clkgen.c **** }
+ 108              		.loc 1 92 0
+ 109 0014 5001E0E7 		ubfx	r0, r0, #2, #1
+ 110 0018 1EFF2FE1 		bx	lr
+ 111              	.L9:
+ 112              		.align	2
+ 113              	.L8:
+ 114 001c 00000000 		.word	.LANCHOR0
+ 115              		.cfi_endproc
+ 116              	.LFE2:
+ 118              		.section	.text.clk_gen_set_src,"ax",%progbits
+ 119              		.align	2
+ 120              		.global	clk_gen_set_src
+ 121              		.syntax unified
+ 122              		.arm
+ 123              		.fpu softvfp
+ 125              	clk_gen_set_src:
+ 126              	.LFB3:
+  93:../lib/x6818/clkgen.c **** 
+  94:../lib/x6818/clkgen.c **** void clk_gen_set_src(clk_gen_index_t index, clk_gen_src_t src_index)
+  95:../lib/x6818/clkgen.c **** {
+ 127              		.loc 1 95 0
+ 128              		.cfi_startproc
+ 129              		@ args = 0, pretend = 0, frame = 0
+ 130              		@ frame_needed = 0, uses_anonymous_args = 0
+ 131              		@ link register save eliminated.
+ 132              	.LVL9:
+  96:../lib/x6818/clkgen.c **** 	const pll_gen_predef_t *predef_info = &pll_gen_predef[index];
+  97:../lib/x6818/clkgen.c **** 	clk_gen_register_t *cur_pll_gen;
+  98:../lib/x6818/clkgen.c **** 
+  99:../lib/x6818/clkgen.c **** 	switch(predef_info->level)
+ 133              		.loc 1 99 0
+ 134 0000 0C30A0E3 		mov	r3, #12
+ 135 0004 1C209FE5 		ldr	r2, .L13
+ 136 0008 932020E0 		mla	r0, r3, r0, r2
+ 137              	.LVL10:
+ 138 000c 0430D0E5 		ldrb	r3, [r0, #4]	@ zero_extendqisi2
+ 139 0010 010053E3 		cmp	r3, #1
+ 100:../lib/x6818/clkgen.c **** 	{
+ 101:../lib/x6818/clkgen.c **** 	case CLK_GEN_LEVEL_0:
+ 102:../lib/x6818/clkgen.c **** 	case CLK_GEN_LEVEL_1:
+ 103:../lib/x6818/clkgen.c **** 		cur_pll_gen = (clk_gen_register_t *)predef_info->base_addr;
+ 140              		.loc 1 103 0
+ 141 0014 08309095 		ldrls	r3, [r0, #8]
+ 142              	.LVL11:
+ 104:../lib/x6818/clkgen.c **** 		cur_pll_gen->clkgen0l.reg_field.clksrcsel0 = src_index;
+ 143              		.loc 1 104 0
+ 144 0018 04209395 		ldrls	r2, [r3, #4]
+ 145 001c 1121C497 		bfils	r2, r1, #2, #3
+ 146 0020 04208395 		strls	r2, [r3, #4]
+ 147 0024 1EFF2FE1 		bx	lr
+ 148              	.L14:
+ 149              		.align	2
+ 150              	.L13:
+ 151 0028 00000000 		.word	.LANCHOR0
+ 152              		.cfi_endproc
+ 153              	.LFE3:
+ 155              		.section	.text.clk_gen_get_freq,"ax",%progbits
+ 156              		.align	2
+ 157              		.global	clk_gen_get_freq
+ 158              		.syntax unified
+ 159              		.arm
+ 160              		.fpu softvfp
+ 162              	clk_gen_get_freq:
+ 163              	.LFB4:
+ 105:../lib/x6818/clkgen.c **** 		break;
+ 106:../lib/x6818/clkgen.c **** 	case CLK_GEN_LEVEL_2:
+ 107:../lib/x6818/clkgen.c **** 		break;
+ 108:../lib/x6818/clkgen.c **** 	}
+ 109:../lib/x6818/clkgen.c **** }
+ 110:../lib/x6818/clkgen.c **** 
+ 111:../lib/x6818/clkgen.c **** uint32_t clk_gen_get_freq(clk_gen_index_t index)
+ 112:../lib/x6818/clkgen.c **** {
+ 164              		.loc 1 112 0
+ 165              		.cfi_startproc
+ 166              		@ args = 0, pretend = 0, frame = 0
+ 167              		@ frame_needed = 0, uses_anonymous_args = 0
+ 168              	.LVL12:
+ 113:../lib/x6818/clkgen.c **** 	const pll_gen_predef_t *predef_info = &pll_gen_predef[index];
+ 114:../lib/x6818/clkgen.c **** 	clk_gen_register_t *cur_pll_gen;
+ 115:../lib/x6818/clkgen.c **** 	uint32_t freq = 0;
+ 116:../lib/x6818/clkgen.c **** 
+ 117:../lib/x6818/clkgen.c **** 	switch(predef_info->level)
+ 169              		.loc 1 117 0
+ 170 0000 0C30A0E3 		mov	r3, #12
+ 171 0004 50209FE5 		ldr	r2, .L24
+ 172 0008 932020E0 		mla	r0, r3, r0, r2
+ 173              	.LVL13:
+ 174 000c 0430D0E5 		ldrb	r3, [r0, #4]	@ zero_extendqisi2
+ 175 0010 010053E3 		cmp	r3, #1
+ 176 0014 0C00008A 		bhi	.L18
+ 112:../lib/x6818/clkgen.c **** 	const pll_gen_predef_t *predef_info = &pll_gen_predef[index];
+ 177              		.loc 1 112 0
+ 178 0018 10402DE9 		push	{r4, lr}
+ 179              		.cfi_def_cfa_offset 8
+ 180              		.cfi_offset 4, -8
+ 181              		.cfi_offset 14, -4
+ 118:../lib/x6818/clkgen.c **** 	{
+ 119:../lib/x6818/clkgen.c **** 	case CLK_GEN_LEVEL_0:
+ 120:../lib/x6818/clkgen.c **** 	case CLK_GEN_LEVEL_1:
+ 121:../lib/x6818/clkgen.c **** 		cur_pll_gen = (clk_gen_register_t *)predef_info->base_addr;
+ 182              		.loc 1 121 0
+ 183 001c 084090E5 		ldr	r4, [r0, #8]
+ 184              	.LVL14:
+ 185              	.LBB4:
+ 186              	.LBB5:
+  91:../lib/x6818/clkgen.c **** }
+ 187              		.loc 1 91 0
+ 188 0020 003094E5 		ldr	r3, [r4]
+ 189              	.LBE5:
+ 190              	.LBE4:
+ 122:../lib/x6818/clkgen.c **** 		if(clk_gen_isEnable(index) == CLK_GEN_ENABLE)
+ 191              		.loc 1 122 0
+ 192 0024 040013E3 		tst	r3, #4
+ 193 0028 0900000A 		beq	.L19
+ 123:../lib/x6818/clkgen.c **** 		{
+ 124:../lib/x6818/clkgen.c **** 			freq = pll_clk_pll_get_freq((pll_index_t )cur_pll_gen->clkgen0l.reg_field.clksrcsel0);
+ 194              		.loc 1 124 0
+ 195 002c 040094E5 		ldr	r0, [r4, #4]
+ 196 0030 5001E2E7 		ubfx	r0, r0, #2, #3
+ 197 0034 FEFFFFEB 		bl	pll_clk_pll_get_freq
+ 198              	.LVL15:
+ 125:../lib/x6818/clkgen.c **** 			freq = freq/(cur_pll_gen->clkgen0l.reg_field.clkdiv0 + 1);
+ 199              		.loc 1 125 0
+ 200 0038 043094E5 		ldr	r3, [r4, #4]
+ 201 003c D332E7E7 		ubfx	r3, r3, #5, #8
+ 202 0040 013083E2 		add	r3, r3, #1
+ 203 0044 10F330E7 		udiv	r0, r0, r3
+ 204              	.LVL16:
+ 205 0048 1080BDE8 		pop	{r4, pc}
+ 206              	.LVL17:
+ 207              	.L18:
+ 208              		.cfi_def_cfa_offset 0
+ 209              		.cfi_restore 4
+ 210              		.cfi_restore 14
+ 115:../lib/x6818/clkgen.c **** 
+ 211              		.loc 1 115 0
+ 212 004c 0000A0E3 		mov	r0, #0
+ 213 0050 1EFF2FE1 		bx	lr
+ 214              	.LVL18:
+ 215              	.L19:
+ 216              		.cfi_def_cfa_offset 8
+ 217              		.cfi_offset 4, -8
+ 218              		.cfi_offset 14, -4
+ 219 0054 0000A0E3 		mov	r0, #0
+ 126:../lib/x6818/clkgen.c **** 		}
+ 127:../lib/x6818/clkgen.c **** 		break;
+ 128:../lib/x6818/clkgen.c **** 	case CLK_GEN_LEVEL_2:
+ 129:../lib/x6818/clkgen.c **** 		break;
+ 130:../lib/x6818/clkgen.c **** 	}
+ 131:../lib/x6818/clkgen.c **** 
+ 132:../lib/x6818/clkgen.c **** 	return freq;
+ 133:../lib/x6818/clkgen.c **** }
+ 220              		.loc 1 133 0
+ 221 0058 1080BDE8 		pop	{r4, pc}
+ 222              	.L25:
+ 223              		.align	2
+ 224              	.L24:
+ 225 005c 00000000 		.word	.LANCHOR0
+ 226              		.cfi_endproc
+ 227              	.LFE4:
+ 229              		.global	pll_gen_predef
+ 230              		.section	.rodata.pll_gen_predef,"a",%progbits
+ 231              		.align	2
+ 232              		.set	.LANCHOR0,. + 0
+ 235              	pll_gen_predef:
+ 236 0000 00000000 		.word	.LC0
+ 237 0004 01       		.byte	1
+ 238 0005 000000   		.space	3
+ 239 0008 00900AC0 		.word	-1073049600
+ 240 000c 06000000 		.word	.LC1
+ 241 0010 01       		.byte	1
+ 242 0011 000000   		.space	3
+ 243 0014 00900BC0 		.word	-1072984064
+ 244 0018 0D000000 		.word	.LC2
+ 245 001c 01       		.byte	1
+ 246 001d 000000   		.space	3
+ 247 0020 00B00BC0 		.word	-1072975872
+ 248 0024 14000000 		.word	.LC3
+ 249 0028 01       		.byte	1
+ 250 0029 000000   		.space	3
+ 251 002c 00C00BC0 		.word	-1072971776
+ 252 0030 1B000000 		.word	.LC4
+ 253 0034 01       		.byte	1
+ 254 0035 000000   		.space	3
+ 255 0038 00D00BC0 		.word	-1072967680
+ 256              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 257              	.LC0:
+ 258 0000 55415254 		.ascii	"UART0\000"
+ 258      3000
+ 259              	.LC1:
+ 260 0006 54494D45 		.ascii	"TIMER0\000"
+ 260      523000
+ 261              	.LC2:
+ 262 000d 54494D45 		.ascii	"TIMER1\000"
+ 262      523100
+ 263              	.LC3:
+ 264 0014 54494D45 		.ascii	"TIMER2\000"
+ 264      523200
+ 265              	.LC4:
+ 266 001b 54494D45 		.ascii	"TIMER3\000"
+ 266      523300
+ 267              		.text
+ 268              	.Letext0:
+ 269              		.file 2 "/usr/include/newlib/machine/_default_types.h"
+ 270              		.file 3 "/usr/include/newlib/sys/_stdint.h"
+ 271              		.file 4 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/clkpwr.h"
+ 272              		.file 5 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/clkgen.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 clkgen.c
+     /tmp/cc31xzKK.s:16     .text.clk_gen_enable:0000000000000000 $a
+     /tmp/cc31xzKK.s:22     .text.clk_gen_enable:0000000000000000 clk_gen_enable
+     /tmp/cc31xzKK.s:46     .text.clk_gen_enable:0000000000000020 $d
+     /tmp/cc31xzKK.s:51     .text.clk_gen_disable:0000000000000000 $a
+     /tmp/cc31xzKK.s:57     .text.clk_gen_disable:0000000000000000 clk_gen_disable
+     /tmp/cc31xzKK.s:80     .text.clk_gen_disable:0000000000000020 $d
+     /tmp/cc31xzKK.s:85     .text.clk_gen_isEnable:0000000000000000 $a
+     /tmp/cc31xzKK.s:91     .text.clk_gen_isEnable:0000000000000000 clk_gen_isEnable
+     /tmp/cc31xzKK.s:114    .text.clk_gen_isEnable:000000000000001c $d
+     /tmp/cc31xzKK.s:119    .text.clk_gen_set_src:0000000000000000 $a
+     /tmp/cc31xzKK.s:125    .text.clk_gen_set_src:0000000000000000 clk_gen_set_src
+     /tmp/cc31xzKK.s:151    .text.clk_gen_set_src:0000000000000028 $d
+     /tmp/cc31xzKK.s:156    .text.clk_gen_get_freq:0000000000000000 $a
+     /tmp/cc31xzKK.s:162    .text.clk_gen_get_freq:0000000000000000 clk_gen_get_freq
+     /tmp/cc31xzKK.s:225    .text.clk_gen_get_freq:000000000000005c $d
+     /tmp/cc31xzKK.s:235    .rodata.pll_gen_predef:0000000000000000 pll_gen_predef
+     /tmp/cc31xzKK.s:231    .rodata.pll_gen_predef:0000000000000000 $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+pll_clk_pll_get_freq

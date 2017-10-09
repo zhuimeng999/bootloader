@@ -1,0 +1,208 @@
+   1              		.cpu cortex-a53
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 4
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.boot_main,"ax",%progbits
+  16              		.align	2
+  17              		.global	boot_main
+  18              		.syntax unified
+  19              		.arm
+  20              		.fpu softvfp
+  22              	boot_main:
+  23              	.LFB1:
+  24              		.file 1 "../src/main.c"
+   1:../src/main.c **** /*
+   2:../src/main.c ****  ============================================================================
+   3:../src/main.c ****  Name        : main.c
+   4:../src/main.c ****  Author      : Lucius
+   5:../src/main.c ****  Version     :
+   6:../src/main.c ****  Copyright   : Your copyright notice
+   7:../src/main.c ****  Description : Hello World in C
+   8:../src/main.c ****  ============================================================================
+   9:../src/main.c ****  */
+  10:../src/main.c **** 
+  11:../src/main.c **** #include <stdio.h>
+  12:../src/main.c **** #include <stdint.h>
+  13:../src/main.c **** 
+  14:../src/main.c **** #include "x6818/uart.h"
+  15:../src/main.c **** #include "x6818/clkpwr.h"
+  16:../src/main.c **** 
+  17:../src/main.c **** /*
+  18:../src/main.c ****  *
+  19:../src/main.c ****  * Print a greeting message on standard output and exit.
+  20:../src/main.c ****  *
+  21:../src/main.c ****  * On embedded platforms this might require semi-hosting or similar.
+  22:../src/main.c ****  *
+  23:../src/main.c ****  * For example, for toolchains derived from GNU Tools for Embedded,
+  24:../src/main.c ****  * to enable semi-hosting, the following was added to the linker:
+  25:../src/main.c ****  *
+  26:../src/main.c ****  * --specs=rdimon.specs -Wl,--start-group -lgcc -lc -lc -lm -lrdimon -Wl,--end-group
+  27:../src/main.c ****  *
+  28:../src/main.c ****  * Adjust it for other toolchains.
+  29:../src/main.c ****  *
+  30:../src/main.c ****  */
+  31:../src/main.c **** 
+  32:../src/main.c **** uint32_t boot_main(uint32_t cpu_id)
+  33:../src/main.c **** {
+  25              		.loc 1 33 0
+  26              		.cfi_startproc
+  27              		@ Volatile: function does not return.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  31 0000 10402DE9 		push	{r4, lr}
+  32              		.cfi_def_cfa_offset 8
+  33              		.cfi_offset 4, -8
+  34              		.cfi_offset 14, -4
+  34:../src/main.c **** 	(void )cpu_id;
+  35:../src/main.c **** 	uart_init();
+  35              		.loc 1 35 0
+  36 0004 FEFFFFEB 		bl	uart_init
+  37              	.LVL1:
+  36:../src/main.c **** 	uart_printf("uart init!\n");
+  38              		.loc 1 36 0
+  39 0008 2C009FE5 		ldr	r0, .L8
+  40 000c FEFFFFEB 		bl	uart_printf
+  41              	.LVL2:
+  42              	.L2:
+  37:../src/main.c ****   while(uart_is_busy());
+  43              		.loc 1 37 0 discriminator 1
+  44 0010 FEFFFFEB 		bl	uart_is_busy
+  45              	.LVL3:
+  46 0014 000050E3 		cmp	r0, #0
+  47 0018 FCFFFF1A 		bne	.L2
+  38:../src/main.c ****   clkpwr_pll_init();
+  48              		.loc 1 38 0
+  49 001c FEFFFFEB 		bl	clkpwr_pll_init
+  50              	.LVL4:
+  39:../src/main.c **** 	uart_init();
+  51              		.loc 1 39 0
+  52 0020 FEFFFFEB 		bl	uart_init
+  53              	.LVL5:
+  40:../src/main.c ****   uart_printf("pll inited\n");
+  54              		.loc 1 40 0
+  55 0024 14009FE5 		ldr	r0, .L8+4
+  56 0028 FEFFFFEB 		bl	uart_printf
+  57              	.LVL6:
+  58              	.L3:
+  41:../src/main.c ****   while(uart_is_busy());
+  59              		.loc 1 41 0 discriminator 1
+  60 002c FEFFFFEB 		bl	uart_is_busy
+  61              	.LVL7:
+  62 0030 000050E3 		cmp	r0, #0
+  63 0034 FCFFFF1A 		bne	.L3
+  64              	.L4:
+  65 0038 FEFFFFEA 		b	.L4
+  66              	.L9:
+  67              		.align	2
+  68              	.L8:
+  69 003c 00000000 		.word	.LC0
+  70 0040 0C000000 		.word	.LC1
+  71              		.cfi_endproc
+  72              	.LFE1:
+  74              		.section	.text._write,"ax",%progbits
+  75              		.align	2
+  76              		.weak	_write
+  77              		.syntax unified
+  78              		.arm
+  79              		.fpu softvfp
+  81              	_write:
+  82              	.LFB2:
+  42:../src/main.c **** 
+  43:../src/main.c ****   while(1)
+  44:../src/main.c ****   {
+  45:../src/main.c **** 
+  46:../src/main.c ****   }
+  47:../src/main.c ****   return 0;
+  48:../src/main.c **** }
+  49:../src/main.c **** 
+  50:../src/main.c **** int __attribute__ ((weak)) _write(int file, char *ptr, int len) {
+  83              		.loc 1 50 0
+  84              		.cfi_startproc
+  85              		@ args = 0, pretend = 0, frame = 0
+  86              		@ frame_needed = 0, uses_anonymous_args = 0
+  87              		@ link register save eliminated.
+  88              	.LVL8:
+  51:../src/main.c **** 	(void )file;
+  52:../src/main.c **** 	(void )ptr;
+  53:../src/main.c **** 	(void )len;
+  54:../src/main.c ****   return len;
+  55:../src/main.c **** }
+  89              		.loc 1 55 0
+  90 0000 0200A0E1 		mov	r0, r2
+  91              	.LVL9:
+  92 0004 1EFF2FE1 		bx	lr
+  93              		.cfi_endproc
+  94              	.LFE2:
+  96              		.section	.text.sub_cpu_main,"ax",%progbits
+  97              		.align	2
+  98              		.global	sub_cpu_main
+  99              		.syntax unified
+ 100              		.arm
+ 101              		.fpu softvfp
+ 103              	sub_cpu_main:
+ 104              	.LFB3:
+  56:../src/main.c **** 
+  57:../src/main.c **** uint32_t sub_cpu_main(uint32_t cpu_id)
+  58:../src/main.c **** {
+ 105              		.loc 1 58 0
+ 106              		.cfi_startproc
+ 107              		@ args = 0, pretend = 0, frame = 0
+ 108              		@ frame_needed = 0, uses_anonymous_args = 0
+ 109              		@ link register save eliminated.
+ 110              	.LVL10:
+  59:../src/main.c **** 	(void )cpu_id;
+  60:../src/main.c **** 
+  61:../src/main.c **** 	return 0;
+  62:../src/main.c **** }
+ 111              		.loc 1 62 0
+ 112 0000 0000A0E3 		mov	r0, #0
+ 113              	.LVL11:
+ 114 0004 1EFF2FE1 		bx	lr
+ 115              		.cfi_endproc
+ 116              	.LFE3:
+ 118              		.section	.rodata.boot_main.str1.1,"aMS",%progbits,1
+ 119              	.LC0:
+ 120 0000 75617274 		.ascii	"uart init!\012\000"
+ 120      20696E69 
+ 120      74210A00 
+ 121              	.LC1:
+ 122 000c 706C6C20 		.ascii	"pll inited\012\000"
+ 122      696E6974 
+ 122      65640A00 
+ 123              		.text
+ 124              	.Letext0:
+ 125              		.file 2 "/usr/include/newlib/machine/_default_types.h"
+ 126              		.file 3 "/usr/include/newlib/sys/lock.h"
+ 127              		.file 4 "/usr/include/newlib/sys/_types.h"
+ 128              		.file 5 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 129              		.file 6 "/usr/include/newlib/sys/reent.h"
+ 130              		.file 7 "/usr/include/newlib/sys/_stdint.h"
+ 131              		.file 8 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/uart.h"
+ 132              		.file 9 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+     /tmp/ccPbCTFr.s:16     .text.boot_main:0000000000000000 $a
+     /tmp/ccPbCTFr.s:22     .text.boot_main:0000000000000000 boot_main
+     /tmp/ccPbCTFr.s:69     .text.boot_main:000000000000003c $d
+     /tmp/ccPbCTFr.s:75     .text._write:0000000000000000 $a
+     /tmp/ccPbCTFr.s:81     .text._write:0000000000000000 _write
+     /tmp/ccPbCTFr.s:97     .text.sub_cpu_main:0000000000000000 $a
+     /tmp/ccPbCTFr.s:103    .text.sub_cpu_main:0000000000000000 sub_cpu_main
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+uart_init
+uart_printf
+uart_is_busy
+clkpwr_pll_init

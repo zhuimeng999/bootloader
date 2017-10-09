@@ -1,0 +1,249 @@
+   1              		.cpu cortex-a53
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 4
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"ddr3.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.ddr3_init,"ax",%progbits
+  16              		.align	2
+  17              		.global	ddr3_init
+  18              		.syntax unified
+  19              		.arm
+  20              		.fpu softvfp
+  22              	ddr3_init:
+  23              	.LFB2:
+  24              		.file 1 "../lib/x6818/ddr3.c"
+   1:../lib/x6818/ddr3.c **** /*
+   2:../lib/x6818/ddr3.c ****  * ddr3.c
+   3:../lib/x6818/ddr3.c ****  *
+   4:../lib/x6818/ddr3.c ****  *  Created on: 2017年10月7日
+   5:../lib/x6818/ddr3.c ****  *      Author: lucius
+   6:../lib/x6818/ddr3.c ****  */
+   7:../lib/x6818/ddr3.c **** 
+   8:../lib/x6818/ddr3.c **** #include "x6818/ddr3.h"
+   9:../lib/x6818/ddr3.c **** 
+  10:../lib/x6818/ddr3.c **** /*3. ZQ Calibration*/
+  11:../lib/x6818/ddr3.c **** static inline void ddr3_phy_zq_calibration(void)
+  12:../lib/x6818/ddr3.c **** {
+  13:../lib/x6818/ddr3.c ****   ddrphy_t *ddrphy = (ddrphy_t *)DDR3_DDRPHY_BASE;
+  14:../lib/x6818/ddr3.c ****   uint32_t tmp;
+  15:../lib/x6818/ddr3.c **** 
+  16:../lib/x6818/ddr3.c ****   /*
+  17:../lib/x6818/ddr3.c ****   1. After power-up and system PLL locking time, system reset (rst_n) is released.
+  18:../lib/x6818/ddr3.c ****   */
+  19:../lib/x6818/ddr3.c ****   /*
+  20:../lib/x6818/ddr3.c ****   2. Set ctrl_zq_clk_div[31:0] to proper value (= 0x7)
+  21:../lib/x6818/ddr3.c ****   */
+  22:../lib/x6818/ddr3.c ****   ddrphy->zq_con2 = 0x7;
+  23:../lib/x6818/ddr3.c **** 
+  24:../lib/x6818/ddr3.c ****   /*
+  25:../lib/x6818/ddr3.c ****   3. Set ZQ_CLK_DIV_EN from 1’b0 to 1’b1 to update divider settings (ctrl_zq_clk_div[31:0] = 0x
+  26:../lib/x6818/ddr3.c ****   */
+  27:../lib/x6818/ddr3.c ****   tmp = ddrphy->zq_con0;
+  28:../lib/x6818/ddr3.c **** 
+  29:../lib/x6818/ddr3.c ****   ddrphy->zq_con0 = tmp;
+  30:../lib/x6818/ddr3.c ****   /*
+  31:../lib/x6818/ddr3.c ****   4. Set zq_manual_mode
+  32:../lib/x6818/ddr3.c ****    Long calibration mode: 2’b01
+  33:../lib/x6818/ddr3.c ****    Short calibration mode: 2’b10
+  34:../lib/x6818/ddr3.c ****   5. Start ZQ I/O calibration by setting ZQ_MANUAL_STR from 1’b0 to 1’b1
+  35:../lib/x6818/ddr3.c ****   6. When calibration is done, zq_done (= PHY_CON17[0]) will be set. For four cycles (system clock)
+  36:../lib/x6818/ddr3.c ****   7. After zq_done (= PHY_CON17[0]) is asserted, clear ZQ_MANUAL_STR
+  37:../lib/x6818/ddr3.c ****   8. Clear ZQ_CLK_DIV_EN
+  38:../lib/x6818/ddr3.c ****   */
+  39:../lib/x6818/ddr3.c **** }
+  40:../lib/x6818/ddr3.c **** 
+  41:../lib/x6818/ddr3.c **** /*
+  42:../lib/x6818/ddr3.c **** 2. Set the PHY for DDR3 operation mode, RL/WL/BL register and processed ZQ calibration. Refer to
+  43:../lib/x6818/ddr3.c **** "INITIALIZATION" in PHY manual.
+  44:../lib/x6818/ddr3.c **** */
+  45:../lib/x6818/ddr3.c **** static inline void ddr3_phy_init(void)
+  46:../lib/x6818/ddr3.c **** {
+  47:../lib/x6818/ddr3.c ****   ddrphy_t *ddrphy = (ddrphy_t *)DDR3_DDRPHY_BASE;
+  48:../lib/x6818/ddr3.c ****   uint32_t tmp;
+  49:../lib/x6818/ddr3.c **** 
+  50:../lib/x6818/ddr3.c ****   /*1. Select Memory Type*/
+  51:../lib/x6818/ddr3.c ****   /*1.1 */
+  52:../lib/x6818/ddr3.c ****   tmp = ddrphy->phy_con0;
+  53:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_MODE_MASK;
+  54:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_MODE_DDR3;
+  55:../lib/x6818/ddr3.c ****   ddrphy->phy_con0 = tmp;
+  56:../lib/x6818/ddr3.c **** 
+  57:../lib/x6818/ddr3.c ****   /*1.2 set default read command */
+  58:../lib/x6818/ddr3.c ****   tmp = ddrphy->lp_ddr_con3;
+  59:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_COMMAND_MASK;
+  60:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_COMMAND_READ;
+  61:../lib/x6818/ddr3.c ****   ddrphy->lp_ddr_con3 = tmp;
+  62:../lib/x6818/ddr3.c **** 
+  63:../lib/x6818/ddr3.c ****   /*1.2 set default active command */
+  64:../lib/x6818/ddr3.c ****   tmp = ddrphy->lp_ddr_con4;
+  65:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_COMMAND_MASK;
+  66:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_COMMAND_ACTIVE;
+  67:../lib/x6818/ddr3.c ****   ddrphy->lp_ddr_con4 = tmp;
+  68:../lib/x6818/ddr3.c **** 
+  69:../lib/x6818/ddr3.c ****   /*1.3 set phy update mode  */
+  70:../lib/x6818/ddr3.c ****   tmp = ddrphy->offsetd_con0;
+  71:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_UPD_MASK;
+  72:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_UPD_MC;
+  73:../lib/x6818/ddr3.c ****   ddrphy->offsetd_con0 = tmp;
+  74:../lib/x6818/ddr3.c **** 
+  75:../lib/x6818/ddr3.c ****   /*2. Set Read Latency (RL), Burst Length (BL) and Write Latency (WL)*/
+  76:../lib/x6818/ddr3.c ****   tmp = ddrphy->phy_con4;
+  77:../lib/x6818/ddr3.c ****   tmp &= ~(DDR3_DDRPHY_WRLAT_MASK | DDR3_DDRPHY_BSTLEN_MASK | DDR3_DDRPHY_RDLAT_MASK);
+  78:../lib/x6818/ddr3.c ****   tmp |= (6 << DDR3_DDRPHY_RDLAT_OFFSET); /* */
+  79:../lib/x6818/ddr3.c ****   tmp |= (8 << DDR3_DDRPHY_BSTLEN_OFFSET); /* */
+  80:../lib/x6818/ddr3.c ****   tmp |= (6 << DDR3_DDRPHY_WRLAT_OFFSET); /* */
+  81:../lib/x6818/ddr3.c ****   ddrphy->phy_con4 = tmp;
+  82:../lib/x6818/ddr3.c **** 
+  83:../lib/x6818/ddr3.c ****   /*3. ZQ Calibration */
+  84:../lib/x6818/ddr3.c ****   ddr3_phy_zq_calibration();
+  85:../lib/x6818/ddr3.c **** }
+  86:../lib/x6818/ddr3.c **** 
+  87:../lib/x6818/ddr3.c **** void ddr3_init(void)
+  88:../lib/x6818/ddr3.c **** {
+  25              		.loc 1 88 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              		@ link register save eliminated.
+  30              	.LVL0:
+  31              	.LBB6:
+  32              	.LBB7:
+  52:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_MODE_MASK;
+  33              		.loc 1 52 0
+  34 0000 70309FE5 		ldr	r3, .L2
+  59:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_COMMAND_READ;
+  35              		.loc 1 59 0
+  36 0004 70009FE5 		ldr	r0, .L2+4
+  52:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_MODE_MASK;
+  37              		.loc 1 52 0
+  38 0008 002093E5 		ldr	r2, [r3]
+  39              	.LVL1:
+  53:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_MODE_DDR3;
+  40              		.loc 1 53 0
+  41 000c 062BC2E3 		bic	r2, r2, #6144
+  42              	.LVL2:
+  54:../lib/x6818/ddr3.c ****   ddrphy->phy_con0 = tmp;
+  43              		.loc 1 54 0
+  44 0010 022B82E3 		orr	r2, r2, #2048
+  45              	.LVL3:
+  55:../lib/x6818/ddr3.c **** 
+  46              		.loc 1 55 0
+  47 0014 002083E5 		str	r2, [r3]
+  58:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_COMMAND_MASK;
+  48              		.loc 1 58 0
+  49 0018 641093E5 		ldr	r1, [r3, #100]
+  50              	.LVL4:
+  59:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_COMMAND_READ;
+  51              		.loc 1 59 0
+  52 001c 001001E0 		and	r1, r1, r0
+  53              	.LVL5:
+  60:../lib/x6818/ddr3.c ****   ddrphy->lp_ddr_con3 = tmp;
+  54              		.loc 1 60 0
+  55 0020 411D81E3 		orr	r1, r1, #4160
+  56              	.LVL6:
+  57 0024 1E1081E3 		orr	r1, r1, #30
+  58              	.LVL7:
+  61:../lib/x6818/ddr3.c **** 
+  59              		.loc 1 61 0
+  60 0028 641083E5 		str	r1, [r3, #100]
+  77:../lib/x6818/ddr3.c ****   tmp |= (6 << DDR3_DDRPHY_RDLAT_OFFSET); /* */
+  61              		.loc 1 77 0
+  62 002c 4C109FE5 		ldr	r1, .L2+8
+  63              	.LVL8:
+  64:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_COMMAND_MASK;
+  64              		.loc 1 64 0
+  65 0030 682093E5 		ldr	r2, [r3, #104]
+  66              	.LVL9:
+  65:../lib/x6818/ddr3.c ****   tmp |= DDR3_DDRPHY_COMMAND_ACTIVE;
+  67              		.loc 1 65 0
+  68 0034 002002E0 		and	r2, r2, r0
+  69              	.LVL10:
+  66:../lib/x6818/ddr3.c ****   ddrphy->lp_ddr_con4 = tmp;
+  70              		.loc 1 66 0
+  71 0038 412D82E3 		orr	r2, r2, #4160
+  72              	.LVL11:
+  73 003c 3F2082E3 		orr	r2, r2, #63
+  74              	.LVL12:
+  67:../lib/x6818/ddr3.c **** 
+  75              		.loc 1 67 0
+  76 0040 682083E5 		str	r2, [r3, #104]
+  70:../lib/x6818/ddr3.c ****   tmp &= ~DDR3_DDRPHY_UPD_MASK;
+  77              		.loc 1 70 0
+  78 0044 502093E5 		ldr	r2, [r3, #80]
+  79              	.LVL13:
+  72:../lib/x6818/ddr3.c ****   ddrphy->offsetd_con0 = tmp;
+  80              		.loc 1 72 0
+  81 0048 012282E3 		orr	r2, r2, #268435456
+  82              	.LVL14:
+  73:../lib/x6818/ddr3.c **** 
+  83              		.loc 1 73 0
+  84 004c 502083E5 		str	r2, [r3, #80]
+  76:../lib/x6818/ddr3.c ****   tmp &= ~(DDR3_DDRPHY_WRLAT_MASK | DDR3_DDRPHY_BSTLEN_MASK | DDR3_DDRPHY_RDLAT_MASK);
+  85              		.loc 1 76 0
+  86 0050 102093E5 		ldr	r2, [r3, #16]
+  87              	.LVL15:
+  77:../lib/x6818/ddr3.c ****   tmp |= (6 << DDR3_DDRPHY_RDLAT_OFFSET); /* */
+  88              		.loc 1 77 0
+  89 0054 021001E0 		and	r1, r1, r2
+  90              	.LVL16:
+  80:../lib/x6818/ddr3.c ****   ddrphy->phy_con4 = tmp;
+  91              		.loc 1 80 0
+  92 0058 24209FE5 		ldr	r2, .L2+12
+  93 005c 022081E1 		orr	r2, r1, r2
+  94              	.LVL17:
+  81:../lib/x6818/ddr3.c **** 
+  95              		.loc 1 81 0
+  96 0060 102083E5 		str	r2, [r3, #16]
+  97              	.LVL18:
+  98              	.LBB8:
+  99              	.LBB9:
+  22:../lib/x6818/ddr3.c **** 
+ 100              		.loc 1 22 0
+ 101 0064 0720A0E3 		mov	r2, #7
+ 102              	.LVL19:
+ 103 0068 C82083E5 		str	r2, [r3, #200]
+ 104              	.LVL20:
+  27:../lib/x6818/ddr3.c **** 
+ 105              		.loc 1 27 0
+ 106 006c C02093E5 		ldr	r2, [r3, #192]
+ 107              	.LVL21:
+  29:../lib/x6818/ddr3.c ****   /*
+ 108              		.loc 1 29 0
+ 109 0070 C02083E5 		str	r2, [r3, #192]
+ 110              	.LVL22:
+ 111 0074 1EFF2FE1 		bx	lr
+ 112              	.L3:
+ 113              		.align	2
+ 114              	.L2:
+ 115 0078 00100EC0 		.word	-1072820224
+ 116 007c 00E0FFFF 		.word	-8192
+ 117 0080 E0E0E0FF 		.word	-2039584
+ 118 0084 06080600 		.word	395270
+ 119              	.LBE9:
+ 120              	.LBE8:
+ 121              	.LBE7:
+ 122              	.LBE6:
+ 123              		.cfi_endproc
+ 124              	.LFE2:
+ 126              		.text
+ 127              	.Letext0:
+ 128              		.file 2 "/usr/include/newlib/machine/_default_types.h"
+ 129              		.file 3 "/usr/include/newlib/sys/_stdint.h"
+ 130              		.file 4 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/ddr3.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ddr3.c
+     /tmp/ccmuqvxk.s:16     .text.ddr3_init:0000000000000000 $a
+     /tmp/ccmuqvxk.s:22     .text.ddr3_init:0000000000000000 ddr3_init
+     /tmp/ccmuqvxk.s:115    .text.ddr3_init:0000000000000078 $d
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

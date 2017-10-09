@@ -1,0 +1,627 @@
+   1              		.cpu cortex-a53
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 4
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"uart.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.uart_write,"ax",%progbits
+  16              		.align	2
+  17              		.global	uart_write
+  18              		.syntax unified
+  19              		.arm
+  20              		.fpu softvfp
+  22              	uart_write:
+  23              	.LFB7:
+  24              		.file 1 "../lib/x6818/uart.c"
+   1:../lib/x6818/uart.c **** /*
+   2:../lib/x6818/uart.c ****  * uart.c
+   3:../lib/x6818/uart.c ****  *
+   4:../lib/x6818/uart.c ****  *  Created on: 2017年9月28日
+   5:../lib/x6818/uart.c ****  *      Author: lucius
+   6:../lib/x6818/uart.c ****  */
+   7:../lib/x6818/uart.c **** 
+   8:../lib/x6818/uart.c **** #include "x6818/uart.h"
+   9:../lib/x6818/uart.c **** #include "x6818/gpio.h"
+  10:../lib/x6818/uart.c **** #include "x6818/tieoff.h"
+  11:../lib/x6818/uart.c **** #include "x6818/iprst.h"
+  12:../lib/x6818/uart.c **** #include "x6818/clkgen.h"
+  13:../lib/x6818/uart.c **** 
+  14:../lib/x6818/uart.c **** #include <stdio.h>
+  15:../lib/x6818/uart.c **** #include <stdint.h>
+  16:../lib/x6818/uart.c **** #include <stdarg.h>
+  17:../lib/x6818/uart.c **** 
+  18:../lib/x6818/uart.c **** 
+  19:../lib/x6818/uart.c **** struct s5p6818_uart_reg {
+  20:../lib/x6818/uart.c **** 	volatile uint32_t ulcon;
+  21:../lib/x6818/uart.c **** 	volatile uint32_t ucon;
+  22:../lib/x6818/uart.c **** 	volatile uint32_t ufcon;
+  23:../lib/x6818/uart.c **** 	volatile uint32_t umcon;
+  24:../lib/x6818/uart.c **** 	volatile uint32_t utrstat;
+  25:../lib/x6818/uart.c **** 	volatile uint32_t uerstat;
+  26:../lib/x6818/uart.c **** 	volatile uint32_t ufstat;
+  27:../lib/x6818/uart.c **** 	volatile uint32_t umstat;
+  28:../lib/x6818/uart.c **** 	volatile uint32_t utxh;
+  29:../lib/x6818/uart.c **** 	volatile uint32_t urxh;
+  30:../lib/x6818/uart.c **** 	volatile uint32_t ubrdiv;
+  31:../lib/x6818/uart.c **** 	volatile uint32_t ufracval;
+  32:../lib/x6818/uart.c **** 	volatile uint32_t uintp;
+  33:../lib/x6818/uart.c **** 	volatile uint32_t uints;
+  34:../lib/x6818/uart.c **** 	volatile uint32_t uintm;
+  35:../lib/x6818/uart.c **** };
+  36:../lib/x6818/uart.c **** 
+  37:../lib/x6818/uart.c **** #define UART0_BASE (0xC00A1000)
+  38:../lib/x6818/uart.c **** #define UART1_BASE (0xC00A0000)
+  39:../lib/x6818/uart.c **** #define UART2_BASE (0xC00A2000)
+  40:../lib/x6818/uart.c **** #define UART3_BASE (0xC00A3000)
+  41:../lib/x6818/uart.c **** #define UART4_BASE (0xC006D000)
+  42:../lib/x6818/uart.c **** #define UART5_BASE (0xC006F000)
+  43:../lib/x6818/uart.c **** 
+  44:../lib/x6818/uart.c **** #define UART0 ((struct s5p6818_uart_reg *)UART0_BASE)
+  45:../lib/x6818/uart.c **** #define UART1 ((struct s5p6818_uart_reg *)UART1_BASE)
+  46:../lib/x6818/uart.c **** #define UART2 ((struct s5p6818_uart_reg *)UART2_BASE)
+  47:../lib/x6818/uart.c **** #define UART3 ((struct s5p6818_uart_reg *)UART3_BASE)
+  48:../lib/x6818/uart.c **** #define UART4 ((struct s5p6818_uart_reg *)UART4_BASE)
+  49:../lib/x6818/uart.c **** 
+  50:../lib/x6818/uart.c **** #define UART_ULCON	 	 		(0x00)
+  51:../lib/x6818/uart.c **** #define UART_UCON	 	 		(0x04)
+  52:../lib/x6818/uart.c **** #define UART_UFCON	 	 		(0x08)
+  53:../lib/x6818/uart.c **** #define UART_UMCON	 	 		(0x0C)
+  54:../lib/x6818/uart.c **** #define UART_UTRSTAT			(0x10)
+  55:../lib/x6818/uart.c **** #define UART_UERSTAT			(0x14)
+  56:../lib/x6818/uart.c **** #define UART_UFSTAT				(0x18)
+  57:../lib/x6818/uart.c **** #define UART_UMSTAT				(0x1C)
+  58:../lib/x6818/uart.c **** #define UART_UTXH				(0x20)
+  59:../lib/x6818/uart.c **** #define UART_URXH				(0x24)
+  60:../lib/x6818/uart.c **** #define UART_UBRDIV				(0x28)
+  61:../lib/x6818/uart.c **** #define UART_UFRACVAL			(0x2C)
+  62:../lib/x6818/uart.c **** #define UART_UINTP				(0x30)
+  63:../lib/x6818/uart.c **** #define UART_UINTSP				(0x34)
+  64:../lib/x6818/uart.c **** #define UART_UINTM				(0x38)
+  65:../lib/x6818/uart.c **** 
+  66:../lib/x6818/uart.c **** #define UART_UFSTAT_TXFULL		(1<<24)
+  67:../lib/x6818/uart.c **** #define UART_UFSTAT_RXFULL		(1<<8)
+  68:../lib/x6818/uart.c **** #define UART_UFSTAT_TXCOUNT		(0xFF<<16)
+  69:../lib/x6818/uart.c **** #define UART_UFSTAT_RXCOUNT		(0xFF<<0)
+  70:../lib/x6818/uart.c **** #define UART_UTRSTAT_TXE	  	(1<<2)
+  71:../lib/x6818/uart.c **** #define UART_UTRSTAT_TXFE		(1<<1)
+  72:../lib/x6818/uart.c **** #define UART_UTRSTAT_RXDR		(1<<0)
+  73:../lib/x6818/uart.c **** #define UART_UERSTAT_OVERRUN	(1<<0)
+  74:../lib/x6818/uart.c **** #define UART_UERSTAT_PARITY		(1<<1)
+  75:../lib/x6818/uart.c **** #define UART_UERSTAT_FRAME		(1<<2)
+  76:../lib/x6818/uart.c **** #define UART_UERSTAT_BREAK		(1<<3)
+  77:../lib/x6818/uart.c **** #define UART_UMSTAT_CTS	  		(1<<0)
+  78:../lib/x6818/uart.c **** #define UART_UMSTAT_DCTS		(1<<4)
+  79:../lib/x6818/uart.c **** 
+  80:../lib/x6818/uart.c **** /*uart tieoff config */
+  81:../lib/x6818/uart.c **** #define TIEOFF_SMARTCARD_UART0 (1<<20)
+  82:../lib/x6818/uart.c **** #define TIEOFF_SMARTCARD_TX_UART0 (1<<21)
+  83:../lib/x6818/uart.c **** #define TIEOFF_SMARTCARD_RX_UART0 (1<<22)
+  84:../lib/x6818/uart.c **** 
+  85:../lib/x6818/uart.c **** /* uart iprst */
+  86:../lib/x6818/uart.c **** #define UART0_IPRST_INDEX ((uint32_t )1)
+  87:../lib/x6818/uart.c **** #define UART0_IPRST_OFFSET ((uint32_t )18)
+  88:../lib/x6818/uart.c **** 
+  89:../lib/x6818/uart.c **** static inline void uart_gpio_init(void)
+  90:../lib/x6818/uart.c **** {
+  91:../lib/x6818/uart.c **** 	gpio_set_cfg(GPIOD, 18, 0x1);
+  92:../lib/x6818/uart.c **** 	gpio_set_cfg(GPIOD, 14, 0x1);
+  93:../lib/x6818/uart.c **** 	gpio_set_output(GPIOD, 20);
+  94:../lib/x6818/uart.c **** 	gpio_set_input(GPIOD, 16);
+  95:../lib/x6818/uart.c **** }
+  96:../lib/x6818/uart.c **** 
+  97:../lib/x6818/uart.c **** static inline void uart_tieoff_init(void)
+  98:../lib/x6818/uart.c **** {
+  99:../lib/x6818/uart.c **** 	struct s5p6818_tieoff_reg * tieoff = TIEOFF;
+ 100:../lib/x6818/uart.c **** 
+ 101:../lib/x6818/uart.c **** 	tieoff->con[4] &= (~TIEOFF_SMARTCARD_RX_UART0);
+ 102:../lib/x6818/uart.c **** 	tieoff->con[4] &= (~TIEOFF_SMARTCARD_TX_UART0);
+ 103:../lib/x6818/uart.c **** 	tieoff->con[4] &= (~TIEOFF_SMARTCARD_UART0);
+ 104:../lib/x6818/uart.c **** }
+ 105:../lib/x6818/uart.c **** 
+ 106:../lib/x6818/uart.c **** void uart_init(void)
+ 107:../lib/x6818/uart.c **** {
+ 108:../lib/x6818/uart.c **** 	struct s5p6818_uart_reg * uart = UART0;
+ 109:../lib/x6818/uart.c **** 
+ 110:../lib/x6818/uart.c **** 	uint32_t val = 0;
+ 111:../lib/x6818/uart.c **** 	uint32_t src_clk_freq;
+ 112:../lib/x6818/uart.c **** 
+ 113:../lib/x6818/uart.c **** 	uart_gpio_init();
+ 114:../lib/x6818/uart.c **** 	//tieoff
+ 115:../lib/x6818/uart.c **** 	uart_tieoff_init();
+ 116:../lib/x6818/uart.c **** 	// ip reset
+ 117:../lib/x6818/uart.c **** 	iprst_do_reset(50/32, 50%32);
+ 118:../lib/x6818/uart.c **** 
+ 119:../lib/x6818/uart.c **** 	//clkgen config
+ 120:../lib/x6818/uart.c **** 	clk_gen_enable(CLK_GEN_UART0);
+ 121:../lib/x6818/uart.c **** 	clk_gen_set_src(CLK_GEN_UART0, CLK_GEN_SRC_PLL2);
+ 122:../lib/x6818/uart.c **** 	src_clk_freq = clk_gen_get_freq(CLK_GEN_UART0);
+ 123:../lib/x6818/uart.c **** 
+ 124:../lib/x6818/uart.c **** 	//uart config
+ 125:../lib/x6818/uart.c **** 	val = (src_clk_freq / (115200 * 16)) - 1;
+ 126:../lib/x6818/uart.c **** 	uart->ubrdiv = val;
+ 127:../lib/x6818/uart.c **** 	val = src_clk_freq/115200;
+ 128:../lib/x6818/uart.c **** 	val &= 0xF;
+ 129:../lib/x6818/uart.c **** //  val %= (115200 * 16 + 16/2);	// 0.xxxxxx
+ 130:../lib/x6818/uart.c **** //  val <<= 4;	// mul by 64 (0.xxxxxx * 64 = xx.xxxxxx)
+ 131:../lib/x6818/uart.c **** //  val += 32;	// + 0.5 (32/64) ( half add )
+ 132:../lib/x6818/uart.c **** //  val /= (115200 * 16 + 16/2); // xx.000000
+ 133:../lib/x6818/uart.c **** 	uart->ufracval = val;
+ 134:../lib/x6818/uart.c **** 	uart->ulcon = 0x3;
+ 135:../lib/x6818/uart.c **** 	uart->ucon = 0x113345;
+ 136:../lib/x6818/uart.c **** 	uart->ufcon = 0x441;
+ 137:../lib/x6818/uart.c **** 	uart->umcon = 0;
+ 138:../lib/x6818/uart.c **** 
+ 139:../lib/x6818/uart.c **** 	uart_printf("%u\n", src_clk_freq);
+ 140:../lib/x6818/uart.c **** }
+ 141:../lib/x6818/uart.c **** 
+ 142:../lib/x6818/uart.c **** void uart_write(char *str, int len) {
+  25              		.loc 1 142 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              		@ link register save eliminated.
+  30              	.LVL0:
+ 143:../lib/x6818/uart.c **** 	struct s5p6818_uart_reg * uart = UART0;
+ 144:../lib/x6818/uart.c **** 	int i = 0;
+ 145:../lib/x6818/uart.c **** 	for (i = 0; i < len; i++) {
+ 146:../lib/x6818/uart.c **** 		while (uart->ufstat & UART_UFSTAT_TXFULL)
+  31              		.loc 1 146 0
+  32 0000 28209FE5 		ldr	r2, .L8
+ 145:../lib/x6818/uart.c **** 		while (uart->ufstat & UART_UFSTAT_TXFULL)
+  33              		.loc 1 145 0
+  34 0004 0030A0E1 		mov	r3, r0
+  35              	.LVL1:
+  36              	.L2:
+ 145:../lib/x6818/uart.c **** 		while (uart->ufstat & UART_UFSTAT_TXFULL)
+  37              		.loc 1 145 0 is_stmt 0 discriminator 1
+  38 0008 00C043E0 		sub	ip, r3, r0
+  39 000c 0C0051E1 		cmp	r1, ip
+  40 0010 000000CA 		bgt	.L6
+ 147:../lib/x6818/uart.c **** 			;
+ 148:../lib/x6818/uart.c **** 		if (str[i] != '\n') {
+ 149:../lib/x6818/uart.c **** 			uart->utxh = str[i];
+ 150:../lib/x6818/uart.c **** 		} else {
+ 151:../lib/x6818/uart.c **** //			uart->utxh = '\r';
+ 152:../lib/x6818/uart.c **** //			while (uart->ufstat & UART_UFSTAT_TXFULL)
+ 153:../lib/x6818/uart.c **** //				;
+ 154:../lib/x6818/uart.c **** 			uart->utxh = str[i];
+ 155:../lib/x6818/uart.c **** 		}
+ 156:../lib/x6818/uart.c **** 	}
+ 157:../lib/x6818/uart.c **** }
+  41              		.loc 1 157 0 is_stmt 1
+  42 0014 1EFF2FE1 		bx	lr
+  43              	.L6:
+ 146:../lib/x6818/uart.c **** 			;
+  44              		.loc 1 146 0 discriminator 1
+  45 0018 18C092E5 		ldr	ip, [r2, #24]
+  46 001c 01041CE3 		tst	ip, #16777216
+  47 0020 FCFFFF1A 		bne	.L6
+ 148:../lib/x6818/uart.c **** 			uart->utxh = str[i];
+  48              		.loc 1 148 0
+  49 0024 D1C0D3E0 		ldrsb	ip, [r3], #1
+  50              	.LVL2:
+ 149:../lib/x6818/uart.c **** 		} else {
+  51              		.loc 1 149 0
+  52 0028 20C082E5 		str	ip, [r2, #32]
+  53 002c F5FFFFEA 		b	.L2
+  54              	.L9:
+  55              		.align	2
+  56              	.L8:
+  57 0030 00100AC0 		.word	-1073082368
+  58              		.cfi_endproc
+  59              	.LFE7:
+  61              		.section	.text.uart_printf,"ax",%progbits
+  62              		.align	2
+  63              		.global	uart_printf
+  64              		.syntax unified
+  65              		.arm
+  66              		.fpu softvfp
+  68              	uart_printf:
+  69              	.LFB8:
+ 158:../lib/x6818/uart.c **** static char buf[2048];
+ 159:../lib/x6818/uart.c **** 
+ 160:../lib/x6818/uart.c **** //static spin_lock_t uart_printf_lock = 0;
+ 161:../lib/x6818/uart.c **** 
+ 162:../lib/x6818/uart.c **** int uart_printf(char *fmt, ...) {
+  70              		.loc 1 162 0
+  71              		.cfi_startproc
+  72              		@ args = 4, pretend = 16, frame = 8
+  73              		@ frame_needed = 0, uses_anonymous_args = 1
+  74              	.LVL3:
+  75 0000 0F002DE9 		push	{r0, r1, r2, r3}
+  76              		.cfi_def_cfa_offset 16
+  77              		.cfi_offset 0, -16
+  78              		.cfi_offset 1, -12
+  79              		.cfi_offset 2, -8
+  80              		.cfi_offset 3, -4
+  81 0004 37402DE9 		push	{r0, r1, r2, r4, r5, lr}
+  82              		.cfi_def_cfa_offset 40
+  83              		.cfi_offset 4, -28
+  84              		.cfi_offset 5, -24
+  85              		.cfi_offset 14, -20
+ 163:../lib/x6818/uart.c **** 	va_list va_arg;
+ 164:../lib/x6818/uart.c **** 	va_start(va_arg, fmt);
+ 165:../lib/x6818/uart.c **** 
+ 166:../lib/x6818/uart.c **** 	int len = vsnprintf(buf, 2048, fmt, va_arg);
+  86              		.loc 1 166 0
+  87 0008 021BA0E3 		mov	r1, #2048
+  88 000c 3C509FE5 		ldr	r5, .L12
+ 164:../lib/x6818/uart.c **** 
+  89              		.loc 1 164 0
+  90 0010 1C308DE2 		add	r3, sp, #28
+  91              		.loc 1 166 0
+  92 0014 18209DE5 		ldr	r2, [sp, #24]
+  93 0018 0500A0E1 		mov	r0, r5
+ 164:../lib/x6818/uart.c **** 
+  94              		.loc 1 164 0
+  95 001c 04308DE5 		str	r3, [sp, #4]
+  96              		.loc 1 166 0
+  97 0020 FEFFFFEB 		bl	vsnprintf
+  98              	.LVL4:
+ 167:../lib/x6818/uart.c **** 	buf[len] = '\0';
+  99              		.loc 1 167 0
+ 100 0024 0030A0E3 		mov	r3, #0
+ 166:../lib/x6818/uart.c **** 	buf[len] = '\0';
+ 101              		.loc 1 166 0
+ 102 0028 0040A0E1 		mov	r4, r0
+ 103              	.LVL5:
+ 168:../lib/x6818/uart.c **** 
+ 169:../lib/x6818/uart.c **** //	spin_lock(&uart_printf_lock);
+ 170:../lib/x6818/uart.c **** 	uart_write(buf, len);
+ 104              		.loc 1 170 0
+ 105 002c 0010A0E1 		mov	r1, r0
+ 167:../lib/x6818/uart.c **** 
+ 106              		.loc 1 167 0
+ 107 0030 0030C5E7 		strb	r3, [r5, r0]
+ 108              		.loc 1 170 0
+ 109 0034 0500A0E1 		mov	r0, r5
+ 110              	.LVL6:
+ 111 0038 FEFFFFEB 		bl	uart_write
+ 112              	.LVL7:
+ 171:../lib/x6818/uart.c **** //	spin_unlock(&uart_printf_lock);
+ 172:../lib/x6818/uart.c **** 
+ 173:../lib/x6818/uart.c **** 	va_end(va_arg);
+ 174:../lib/x6818/uart.c **** 	return len;
+ 175:../lib/x6818/uart.c **** }
+ 113              		.loc 1 175 0
+ 114 003c 0400A0E1 		mov	r0, r4
+ 115 0040 0CD08DE2 		add	sp, sp, #12
+ 116              		.cfi_def_cfa_offset 28
+ 117              		@ sp needed
+ 118 0044 3040BDE8 		pop	{r4, r5, lr}
+ 119              		.cfi_restore 14
+ 120              		.cfi_restore 5
+ 121              		.cfi_restore 4
+ 122              		.cfi_def_cfa_offset 16
+ 123 0048 10D08DE2 		add	sp, sp, #16
+ 124              		.cfi_restore 3
+ 125              		.cfi_restore 2
+ 126              		.cfi_restore 1
+ 127              		.cfi_restore 0
+ 128              		.cfi_def_cfa_offset 0
+ 129 004c 1EFF2FE1 		bx	lr
+ 130              	.L13:
+ 131              		.align	2
+ 132              	.L12:
+ 133 0050 00000000 		.word	.LANCHOR0
+ 134              		.cfi_endproc
+ 135              	.LFE8:
+ 137              		.section	.text.uart_init,"ax",%progbits
+ 138              		.align	2
+ 139              		.global	uart_init
+ 140              		.syntax unified
+ 141              		.arm
+ 142              		.fpu softvfp
+ 144              	uart_init:
+ 145              	.LFB6:
+ 107:../lib/x6818/uart.c **** 	struct s5p6818_uart_reg * uart = UART0;
+ 146              		.loc 1 107 0
+ 147              		.cfi_startproc
+ 148              		@ args = 0, pretend = 0, frame = 0
+ 149              		@ frame_needed = 0, uses_anonymous_args = 0
+ 150              	.LVL8:
+ 151 0000 10402DE9 		push	{r4, lr}
+ 152              		.cfi_def_cfa_offset 8
+ 153              		.cfi_offset 4, -8
+ 154              		.cfi_offset 14, -4
+ 155              	.LBB8:
+ 156              	.LBB9:
+  91:../lib/x6818/uart.c **** 	gpio_set_cfg(GPIOD, 14, 0x1);
+ 157              		.loc 1 91 0
+ 158 0004 0120A0E3 		mov	r2, #1
+ 159 0008 E0409FE5 		ldr	r4, .L16
+ 160 000c 1210A0E3 		mov	r1, #18
+ 161 0010 0400A0E1 		mov	r0, r4
+ 162 0014 FEFFFFEB 		bl	gpio_set_cfg
+ 163              	.LVL9:
+  92:../lib/x6818/uart.c **** 	gpio_set_output(GPIOD, 20);
+ 164              		.loc 1 92 0
+ 165 0018 0120A0E3 		mov	r2, #1
+ 166 001c 0400A0E1 		mov	r0, r4
+ 167 0020 0E10A0E3 		mov	r1, #14
+ 168 0024 FEFFFFEB 		bl	gpio_set_cfg
+ 169              	.LVL10:
+  93:../lib/x6818/uart.c **** 	gpio_set_input(GPIOD, 16);
+ 170              		.loc 1 93 0
+ 171 0028 0400A0E1 		mov	r0, r4
+ 172 002c 1410A0E3 		mov	r1, #20
+ 173 0030 FEFFFFEB 		bl	gpio_set_output
+ 174              	.LVL11:
+  94:../lib/x6818/uart.c **** }
+ 175              		.loc 1 94 0
+ 176 0034 1010A0E3 		mov	r1, #16
+ 177 0038 0400A0E1 		mov	r0, r4
+ 178 003c FEFFFFEB 		bl	gpio_set_input
+ 179              	.LVL12:
+ 180              	.LBE9:
+ 181              	.LBE8:
+ 182              	.LBB10:
+ 183              	.LBB11:
+ 101:../lib/x6818/uart.c **** 	tieoff->con[4] &= (~TIEOFF_SMARTCARD_TX_UART0);
+ 184              		.loc 1 101 0
+ 185 0040 AC309FE5 		ldr	r3, .L16+4
+ 186              	.LBE11:
+ 187              	.LBE10:
+ 120:../lib/x6818/uart.c **** 	clk_gen_set_src(CLK_GEN_UART0, CLK_GEN_SRC_PLL2);
+ 188              		.loc 1 120 0
+ 189 0044 0000A0E3 		mov	r0, #0
+ 190              	.LBB13:
+ 191              	.LBB12:
+ 101:../lib/x6818/uart.c **** 	tieoff->con[4] &= (~TIEOFF_SMARTCARD_TX_UART0);
+ 192              		.loc 1 101 0
+ 193 0048 102093E5 		ldr	r2, [r3, #16]
+ 194 004c 0125C2E3 		bic	r2, r2, #4194304
+ 195 0050 102083E5 		str	r2, [r3, #16]
+ 102:../lib/x6818/uart.c **** 	tieoff->con[4] &= (~TIEOFF_SMARTCARD_UART0);
+ 196              		.loc 1 102 0
+ 197 0054 102093E5 		ldr	r2, [r3, #16]
+ 198 0058 0226C2E3 		bic	r2, r2, #2097152
+ 199 005c 102083E5 		str	r2, [r3, #16]
+ 103:../lib/x6818/uart.c **** }
+ 200              		.loc 1 103 0
+ 201 0060 102093E5 		ldr	r2, [r3, #16]
+ 202 0064 0126C2E3 		bic	r2, r2, #1048576
+ 203 0068 102083E5 		str	r2, [r3, #16]
+ 204              	.LVL13:
+ 205              	.LBE12:
+ 206              	.LBE13:
+ 207              	.LBB14:
+ 208              	.LBB15:
+ 209              		.file 2 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h"
+   1:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** /*
+   2:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h ****  * iprst.h
+   3:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h ****  *
+   4:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h ****  *  Created on: 2017年9月28日
+   5:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h ****  *      Author: lucius
+   6:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h ****  */
+   7:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 
+   8:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** #ifndef X6818_IPRST_H_
+   9:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** #define X6818_IPRST_H_
+  10:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 
+  11:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** #include <stdint.h>
+  12:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 
+  13:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** struct iprst_type_t {
+  14:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	volatile uint32_t reg[3];
+  15:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** };
+  16:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 
+  17:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** #define IPRST_BASE (0xC0012000)
+  18:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** #define IPRST ((struct iprst_type_t *)IPRST_BASE)
+  19:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 
+  20:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 
+  21:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** static inline void iprst_do_reset(uint32_t index, uint32_t offset)
+  22:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** {
+  23:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	struct iprst_type_t *iprst = IPRST;
+  24:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	uint32_t tmp = iprst->reg[index];
+ 210              		.loc 2 24 0
+ 211 006c 84209FE5 		ldr	r2, .L16+8
+ 212 0070 043092E5 		ldr	r3, [r2, #4]
+ 213              	.LVL14:
+  25:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	tmp &= ~(1 << offset);
+ 214              		.loc 2 25 0
+ 215 0074 0137C3E3 		bic	r3, r3, #262144
+ 216              	.LVL15:
+  26:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	iprst->reg[index] = tmp;
+ 217              		.loc 2 26 0
+ 218 0078 043082E5 		str	r3, [r2, #4]
+  27:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	tmp |=  (1 << offset);
+ 219              		.loc 2 27 0
+ 220 007c 013783E3 		orr	r3, r3, #262144
+ 221              	.LVL16:
+  28:/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/iprst.h **** 	iprst->reg[index] = tmp;
+ 222              		.loc 2 28 0
+ 223 0080 043082E5 		str	r3, [r2, #4]
+ 224              	.LVL17:
+ 225              	.LBE15:
+ 226              	.LBE14:
+ 120:../lib/x6818/uart.c **** 	clk_gen_set_src(CLK_GEN_UART0, CLK_GEN_SRC_PLL2);
+ 227              		.loc 1 120 0
+ 228 0084 FEFFFFEB 		bl	clk_gen_enable
+ 229              	.LVL18:
+ 121:../lib/x6818/uart.c **** 	src_clk_freq = clk_gen_get_freq(CLK_GEN_UART0);
+ 230              		.loc 1 121 0
+ 231 0088 0210A0E3 		mov	r1, #2
+ 232 008c 0000A0E3 		mov	r0, #0
+ 233 0090 FEFFFFEB 		bl	clk_gen_set_src
+ 234              	.LVL19:
+ 122:../lib/x6818/uart.c **** 
+ 235              		.loc 1 122 0
+ 236 0094 0000A0E3 		mov	r0, #0
+ 237 0098 FEFFFFEB 		bl	clk_gen_get_freq
+ 238              	.LVL20:
+ 125:../lib/x6818/uart.c **** 	uart->ubrdiv = val;
+ 239              		.loc 1 125 0
+ 240 009c 58209FE5 		ldr	r2, .L16+12
+ 126:../lib/x6818/uart.c **** 	val = src_clk_freq/115200;
+ 241              		.loc 1 126 0
+ 242 00a0 58309FE5 		ldr	r3, .L16+16
+ 122:../lib/x6818/uart.c **** 
+ 243              		.loc 1 122 0
+ 244 00a4 0010A0E1 		mov	r1, r0
+ 245              	.LVL21:
+ 140:../lib/x6818/uart.c **** 
+ 246              		.loc 1 140 0
+ 247 00a8 1040BDE8 		pop	{r4, lr}
+ 248              		.cfi_restore 14
+ 249              		.cfi_restore 4
+ 250              		.cfi_def_cfa_offset 0
+ 125:../lib/x6818/uart.c **** 	uart->ubrdiv = val;
+ 251              		.loc 1 125 0
+ 252 00ac 10F232E7 		udiv	r2, r0, r2
+ 253 00b0 012042E2 		sub	r2, r2, #1
+ 254              	.LVL22:
+ 126:../lib/x6818/uart.c **** 	val = src_clk_freq/115200;
+ 255              		.loc 1 126 0
+ 256 00b4 282083E5 		str	r2, [r3, #40]
+ 127:../lib/x6818/uart.c **** 	val &= 0xF;
+ 257              		.loc 1 127 0
+ 258 00b8 44209FE5 		ldr	r2, .L16+20
+ 259              	.LVL23:
+ 260 00bc 10F232E7 		udiv	r2, r0, r2
+ 261              	.LVL24:
+ 139:../lib/x6818/uart.c **** }
+ 262              		.loc 1 139 0
+ 263 00c0 40009FE5 		ldr	r0, .L16+24
+ 264              	.LVL25:
+ 128:../lib/x6818/uart.c **** //  val %= (115200 * 16 + 16/2);	// 0.xxxxxx
+ 265              		.loc 1 128 0
+ 266 00c4 0F2002E2 		and	r2, r2, #15
+ 267              	.LVL26:
+ 133:../lib/x6818/uart.c **** 	uart->ulcon = 0x3;
+ 268              		.loc 1 133 0
+ 269 00c8 2C2083E5 		str	r2, [r3, #44]
+ 134:../lib/x6818/uart.c **** 	uart->ucon = 0x113345;
+ 270              		.loc 1 134 0
+ 271 00cc 0320A0E3 		mov	r2, #3
+ 272              	.LVL27:
+ 273 00d0 002083E5 		str	r2, [r3]
+ 274              	.LVL28:
+ 135:../lib/x6818/uart.c **** 	uart->ufcon = 0x441;
+ 275              		.loc 1 135 0
+ 276 00d4 30209FE5 		ldr	r2, .L16+28
+ 277 00d8 042083E5 		str	r2, [r3, #4]
+ 136:../lib/x6818/uart.c **** 	uart->umcon = 0;
+ 278              		.loc 1 136 0
+ 279 00dc 412400E3 		movw	r2, #1089
+ 280 00e0 082083E5 		str	r2, [r3, #8]
+ 137:../lib/x6818/uart.c **** 
+ 281              		.loc 1 137 0
+ 282 00e4 0020A0E3 		mov	r2, #0
+ 283 00e8 0C2083E5 		str	r2, [r3, #12]
+ 139:../lib/x6818/uart.c **** }
+ 284              		.loc 1 139 0
+ 285 00ec FEFFFFEA 		b	uart_printf
+ 286              	.LVL29:
+ 287              	.L17:
+ 288              		.align	2
+ 289              	.L16:
+ 290 00f0 00D001C0 		.word	-1073623040
+ 291 00f4 001001C0 		.word	-1073672192
+ 292 00f8 002001C0 		.word	-1073668096
+ 293 00fc 00201C00 		.word	1843200
+ 294 0100 00100AC0 		.word	-1073082368
+ 295 0104 00C20100 		.word	115200
+ 296 0108 00000000 		.word	.LC0
+ 297 010c 45331100 		.word	1127237
+ 298              		.cfi_endproc
+ 299              	.LFE6:
+ 301              		.section	.text.uart_is_busy,"ax",%progbits
+ 302              		.align	2
+ 303              		.global	uart_is_busy
+ 304              		.syntax unified
+ 305              		.arm
+ 306              		.fpu softvfp
+ 308              	uart_is_busy:
+ 309              	.LFB9:
+ 176:../lib/x6818/uart.c **** 
+ 177:../lib/x6818/uart.c **** int uart_is_busy(void) {
+ 310              		.loc 1 177 0
+ 311              		.cfi_startproc
+ 312              		@ args = 0, pretend = 0, frame = 0
+ 313              		@ frame_needed = 0, uses_anonymous_args = 0
+ 314              		@ link register save eliminated.
+ 315              	.LVL30:
+ 178:../lib/x6818/uart.c **** 	struct s5p6818_uart_reg * uart = UART0;
+ 179:../lib/x6818/uart.c **** 
+ 180:../lib/x6818/uart.c **** 	if ((uart->ufstat >> 16) & 0x1FF)
+ 316              		.loc 1 180 0
+ 317 0000 1C209FE5 		ldr	r2, .L21
+ 318 0004 183092E5 		ldr	r3, [r2, #24]
+ 319 0008 5338E8E7 		ubfx	r3, r3, #16, #9
+ 320 000c 000053E3 		cmp	r3, #0
+ 181:../lib/x6818/uart.c **** 		return 1;
+ 182:../lib/x6818/uart.c **** 	else
+ 183:../lib/x6818/uart.c **** 		return (uart->utrstat & UART_UTRSTAT_TXE) ? 0 : 1;
+ 321              		.loc 1 183 0
+ 322 0010 10009205 		ldreq	r0, [r2, #16]
+ 323 0014 04002002 		eoreq	r0, r0, #4
+ 324 0018 5001E007 		ubfxeq	r0, r0, #2, #1
+ 325 001c 0100A013 		movne	r0, #1
+ 184:../lib/x6818/uart.c **** }
+ 326              		.loc 1 184 0
+ 327 0020 1EFF2FE1 		bx	lr
+ 328              	.L22:
+ 329              		.align	2
+ 330              	.L21:
+ 331 0024 00100AC0 		.word	-1073082368
+ 332              		.cfi_endproc
+ 333              	.LFE9:
+ 335              		.section	.bss.buf,"aw",%nobits
+ 336              		.set	.LANCHOR0,. + 0
+ 339              	buf:
+ 340 0000 00000000 		.space	2048
+ 340      00000000 
+ 340      00000000 
+ 340      00000000 
+ 340      00000000 
+ 341              		.section	.rodata.uart_init.str1.1,"aMS",%progbits,1
+ 342              	.LC0:
+ 343 0000 25750A00 		.ascii	"%u\012\000"
+ 344              		.text
+ 345              	.Letext0:
+ 346              		.file 3 "/usr/include/newlib/machine/_default_types.h"
+ 347              		.file 4 "/usr/include/newlib/sys/_stdint.h"
+ 348              		.file 5 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/gpio.h"
+ 349              		.file 6 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/tieoff.h"
+ 350              		.file 7 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/clkpwr.h"
+ 351              		.file 8 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/clkgen.h"
+ 352              		.file 9 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stdarg.h"
+ 353              		.file 10 "<built-in>"
+ 354              		.file 11 "/usr/include/newlib/sys/lock.h"
+ 355              		.file 12 "/usr/include/newlib/sys/_types.h"
+ 356              		.file 13 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 357              		.file 14 "/usr/include/newlib/sys/reent.h"
+ 358              		.file 15 "/usr/include/newlib/stdio.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 uart.c
+     /tmp/ccNyNHuk.s:16     .text.uart_write:0000000000000000 $a
+     /tmp/ccNyNHuk.s:22     .text.uart_write:0000000000000000 uart_write
+     /tmp/ccNyNHuk.s:57     .text.uart_write:0000000000000030 $d
+     /tmp/ccNyNHuk.s:62     .text.uart_printf:0000000000000000 $a
+     /tmp/ccNyNHuk.s:68     .text.uart_printf:0000000000000000 uart_printf
+     /tmp/ccNyNHuk.s:133    .text.uart_printf:0000000000000050 $d
+     /tmp/ccNyNHuk.s:138    .text.uart_init:0000000000000000 $a
+     /tmp/ccNyNHuk.s:144    .text.uart_init:0000000000000000 uart_init
+     /tmp/ccNyNHuk.s:290    .text.uart_init:00000000000000f0 $d
+     /tmp/ccNyNHuk.s:302    .text.uart_is_busy:0000000000000000 $a
+     /tmp/ccNyNHuk.s:308    .text.uart_is_busy:0000000000000000 uart_is_busy
+     /tmp/ccNyNHuk.s:331    .text.uart_is_busy:0000000000000024 $d
+     /tmp/ccNyNHuk.s:339    .bss.buf:0000000000000000 buf
+     /tmp/ccNyNHuk.s:340    .bss.buf:0000000000000000 $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+vsnprintf
+gpio_set_cfg
+gpio_set_output
+gpio_set_input
+clk_gen_enable
+clk_gen_set_src
+clk_gen_get_freq

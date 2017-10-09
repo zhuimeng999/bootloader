@@ -1,0 +1,267 @@
+   1              		.cpu cortex-a53
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 4
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"gpio.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.gpio_set_cfg,"ax",%progbits
+  16              		.align	2
+  17              		.global	gpio_set_cfg
+  18              		.syntax unified
+  19              		.arm
+  20              		.fpu softvfp
+  22              	gpio_set_cfg:
+  23              	.LFB0:
+  24              		.file 1 "../lib/x6818/gpio.c"
+   1:../lib/x6818/gpio.c **** /*
+   2:../lib/x6818/gpio.c ****  * gpio.c
+   3:../lib/x6818/gpio.c ****  *
+   4:../lib/x6818/gpio.c ****  *  Created on: 2017年9月28日
+   5:../lib/x6818/gpio.c ****  *      Author: lucius
+   6:../lib/x6818/gpio.c ****  */
+   7:../lib/x6818/gpio.c **** #include "x6818/gpio.h"
+   8:../lib/x6818/gpio.c **** 
+   9:../lib/x6818/gpio.c **** void gpio_set_cfg(struct s5p6818_gpio_reg * gpio, uint32_t pin_no, uint32_t cfg)
+  10:../lib/x6818/gpio.c **** {
+  25              		.loc 1 10 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              		@ link register save eliminated.
+  30              	.LVL0:
+  11:../lib/x6818/gpio.c **** 	uint32_t offset;
+  12:../lib/x6818/gpio.c **** 	uint32_t temp;
+  13:../lib/x6818/gpio.c **** 	if (cfg >= 4) {
+  31              		.loc 1 13 0
+  32 0000 030052E3 		cmp	r2, #3
+  33 0004 1EFF2F81 		bxhi	lr
+  14:../lib/x6818/gpio.c **** 		return;
+  15:../lib/x6818/gpio.c **** 	}
+  16:../lib/x6818/gpio.c **** 	if (pin_no < 16) {
+  34              		.loc 1 16 0
+  35 0008 0F0051E3 		cmp	r1, #15
+  36 000c 0600008A 		bhi	.L3
+  17:../lib/x6818/gpio.c **** 		temp = gpio->altfun0;
+  37              		.loc 1 17 0
+  38 0010 203090E5 		ldr	r3, [r0, #32]
+  39              	.LVL1:
+  18:../lib/x6818/gpio.c **** 		offset = pin_no << 0x01;
+  40              		.loc 1 18 0
+  41 0014 8110A0E1 		lsl	r1, r1, #1
+  42              	.LVL2:
+  19:../lib/x6818/gpio.c **** 		temp &= (~(0x3 << offset));
+  43              		.loc 1 19 0
+  44 0018 03C0A0E3 		mov	ip, #3
+  45 001c 1C31C3E1 		bic	r3, r3, ip, lsl r1
+  46              	.LVL3:
+  20:../lib/x6818/gpio.c **** 		temp |= (cfg << offset);
+  47              		.loc 1 20 0
+  48 0020 121183E1 		orr	r1, r3, r2, lsl r1
+  49              	.LVL4:
+  21:../lib/x6818/gpio.c **** 		gpio->altfun0 = temp;
+  50              		.loc 1 21 0
+  51 0024 201080E5 		str	r1, [r0, #32]
+  52 0028 1EFF2FE1 		bx	lr
+  53              	.LVL5:
+  54              	.L3:
+  22:../lib/x6818/gpio.c **** 	} else if (pin_no < 32) {
+  55              		.loc 1 22 0
+  56 002c 1F0051E3 		cmp	r1, #31
+  57 0030 1EFF2F81 		bxhi	lr
+  23:../lib/x6818/gpio.c **** 		temp = gpio->altfun1;
+  24:../lib/x6818/gpio.c **** 		offset = (pin_no - 16) << 0x01;
+  58              		.loc 1 24 0
+  59 0034 101041E2 		sub	r1, r1, #16
+  60              	.LVL6:
+  23:../lib/x6818/gpio.c **** 		temp = gpio->altfun1;
+  61              		.loc 1 23 0
+  62 0038 243090E5 		ldr	r3, [r0, #36]
+  63              	.LVL7:
+  25:../lib/x6818/gpio.c **** 		temp &= (~(0x3 << offset));
+  64              		.loc 1 25 0
+  65 003c 03C0A0E3 		mov	ip, #3
+  24:../lib/x6818/gpio.c **** 		temp &= (~(0x3 << offset));
+  66              		.loc 1 24 0
+  67 0040 8110A0E1 		lsl	r1, r1, #1
+  68              	.LVL8:
+  69              		.loc 1 25 0
+  70 0044 1C31C3E1 		bic	r3, r3, ip, lsl r1
+  71              	.LVL9:
+  26:../lib/x6818/gpio.c **** 		temp |= (cfg << offset);
+  72              		.loc 1 26 0
+  73 0048 121183E1 		orr	r1, r3, r2, lsl r1
+  74              	.LVL10:
+  27:../lib/x6818/gpio.c **** 		gpio->altfun1 = temp;
+  75              		.loc 1 27 0
+  76 004c 241080E5 		str	r1, [r0, #36]
+  77 0050 1EFF2FE1 		bx	lr
+  78              		.cfi_endproc
+  79              	.LFE0:
+  81              		.section	.text.gpio_set_output,"ax",%progbits
+  82              		.align	2
+  83              		.global	gpio_set_output
+  84              		.syntax unified
+  85              		.arm
+  86              		.fpu softvfp
+  88              	gpio_set_output:
+  89              	.LFB1:
+  28:../lib/x6818/gpio.c **** 	}
+  29:../lib/x6818/gpio.c **** }
+  30:../lib/x6818/gpio.c **** 
+  31:../lib/x6818/gpio.c **** void gpio_set_output(struct s5p6818_gpio_reg * gpio, uint32_t pin_no)
+  32:../lib/x6818/gpio.c **** {
+  90              		.loc 1 32 0
+  91              		.cfi_startproc
+  92              		@ args = 0, pretend = 0, frame = 0
+  93              		@ frame_needed = 0, uses_anonymous_args = 0
+  94              		@ link register save eliminated.
+  95              	.LVL11:
+  33:../lib/x6818/gpio.c **** 	uint32_t val;
+  34:../lib/x6818/gpio.c **** 	if (pin_no >= 32) {
+  96              		.loc 1 34 0
+  97 0000 1F0051E3 		cmp	r1, #31
+  35:../lib/x6818/gpio.c **** 		return;
+  36:../lib/x6818/gpio.c **** 	}
+  37:../lib/x6818/gpio.c **** 	val = gpio->outenb;
+  98              		.loc 1 37 0
+  99 0004 04309095 		ldrls	r3, [r0, #4]
+ 100              	.LVL12:
+  38:../lib/x6818/gpio.c **** 	val |= (1 << pin_no);
+ 101              		.loc 1 38 0
+ 102 0008 0120A093 		movls	r2, #1
+ 103 000c 12118391 		orrls	r1, r3, r2, lsl r1
+ 104              	.LVL13:
+  39:../lib/x6818/gpio.c **** 	gpio->outenb = val;
+ 105              		.loc 1 39 0
+ 106 0010 04108095 		strls	r1, [r0, #4]
+ 107 0014 1EFF2FE1 		bx	lr
+ 108              		.cfi_endproc
+ 109              	.LFE1:
+ 111              		.section	.text.gpio_set_input,"ax",%progbits
+ 112              		.align	2
+ 113              		.global	gpio_set_input
+ 114              		.syntax unified
+ 115              		.arm
+ 116              		.fpu softvfp
+ 118              	gpio_set_input:
+ 119              	.LFB2:
+  40:../lib/x6818/gpio.c **** }
+  41:../lib/x6818/gpio.c **** 
+  42:../lib/x6818/gpio.c **** void gpio_set_input(struct s5p6818_gpio_reg * gpio, uint32_t pin_no)
+  43:../lib/x6818/gpio.c **** {
+ 120              		.loc 1 43 0
+ 121              		.cfi_startproc
+ 122              		@ args = 0, pretend = 0, frame = 0
+ 123              		@ frame_needed = 0, uses_anonymous_args = 0
+ 124              		@ link register save eliminated.
+ 125              	.LVL14:
+  44:../lib/x6818/gpio.c **** 	uint32_t val;
+  45:../lib/x6818/gpio.c **** 	if (pin_no >= 32) {
+ 126              		.loc 1 45 0
+ 127 0000 1F0051E3 		cmp	r1, #31
+  46:../lib/x6818/gpio.c **** 		return;
+  47:../lib/x6818/gpio.c **** 	}
+  48:../lib/x6818/gpio.c **** 	val = gpio->outenb;
+ 128              		.loc 1 48 0
+ 129 0004 04309095 		ldrls	r3, [r0, #4]
+ 130              	.LVL15:
+  49:../lib/x6818/gpio.c **** 	val &= (~(1 << pin_no));
+ 131              		.loc 1 49 0
+ 132 0008 0120A093 		movls	r2, #1
+ 133 000c 1211C391 		bicls	r1, r3, r2, lsl r1
+ 134              	.LVL16:
+  50:../lib/x6818/gpio.c **** 	gpio->outenb = val;
+ 135              		.loc 1 50 0
+ 136 0010 04108095 		strls	r1, [r0, #4]
+ 137 0014 1EFF2FE1 		bx	lr
+ 138              		.cfi_endproc
+ 139              	.LFE2:
+ 141              		.section	.text.gpio_set_pull,"ax",%progbits
+ 142              		.align	2
+ 143              		.global	gpio_set_pull
+ 144              		.syntax unified
+ 145              		.arm
+ 146              		.fpu softvfp
+ 148              	gpio_set_pull:
+ 149              	.LFB3:
+  51:../lib/x6818/gpio.c **** }
+  52:../lib/x6818/gpio.c **** 
+  53:../lib/x6818/gpio.c **** void gpio_set_pull(struct s5p6818_gpio_reg * gpio, uint32_t pin_no, uint32_t pull)
+  54:../lib/x6818/gpio.c **** {
+ 150              		.loc 1 54 0
+ 151              		.cfi_startproc
+ 152              		@ args = 0, pretend = 0, frame = 0
+ 153              		@ frame_needed = 0, uses_anonymous_args = 0
+ 154              		@ link register save eliminated.
+ 155              	.LVL17:
+ 156 0000 1EFF2FE1 		bx	lr
+ 157              		.cfi_endproc
+ 158              	.LFE3:
+ 160              		.section	.text.gpio_output,"ax",%progbits
+ 161              		.align	2
+ 162              		.global	gpio_output
+ 163              		.syntax unified
+ 164              		.arm
+ 165              		.fpu softvfp
+ 167              	gpio_output:
+ 168              	.LFB4:
+  55:../lib/x6818/gpio.c **** 	(void) gpio;
+  56:../lib/x6818/gpio.c **** 	(void) pin_no;
+  57:../lib/x6818/gpio.c **** 	(void) pull;
+  58:../lib/x6818/gpio.c **** }
+  59:../lib/x6818/gpio.c **** 
+  60:../lib/x6818/gpio.c **** void gpio_output(struct s5p6818_gpio_reg * gpio, uint32_t pin_no, uint32_t state) {
+ 169              		.loc 1 60 0
+ 170              		.cfi_startproc
+ 171              		@ args = 0, pretend = 0, frame = 0
+ 172              		@ frame_needed = 0, uses_anonymous_args = 0
+ 173              		@ link register save eliminated.
+ 174              	.LVL18:
+  61:../lib/x6818/gpio.c **** 	if (state) {
+  62:../lib/x6818/gpio.c **** 		gpio->out |= (1 << pin_no);
+ 175              		.loc 1 62 0
+ 176 0000 003090E5 		ldr	r3, [r0]
+  61:../lib/x6818/gpio.c **** 	if (state) {
+ 177              		.loc 1 61 0
+ 178 0004 000052E3 		cmp	r2, #0
+ 179 0008 0120A0E3 		mov	r2, #1
+ 180              	.LVL19:
+ 181              		.loc 1 62 0
+ 182 000c 12118311 		orrne	r1, r3, r2, lsl r1
+ 183              	.LVL20:
+  63:../lib/x6818/gpio.c **** 	} else {
+  64:../lib/x6818/gpio.c **** 		gpio->out &= (~(1 << pin_no));
+ 184              		.loc 1 64 0
+ 185 0010 1211C301 		biceq	r1, r3, r2, lsl r1
+ 186 0014 001080E5 		str	r1, [r0]
+ 187 0018 1EFF2FE1 		bx	lr
+ 188              		.cfi_endproc
+ 189              	.LFE4:
+ 191              		.text
+ 192              	.Letext0:
+ 193              		.file 2 "/usr/include/newlib/machine/_default_types.h"
+ 194              		.file 3 "/usr/include/newlib/sys/_stdint.h"
+ 195              		.file 4 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/gpio.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 gpio.c
+     /tmp/ccHH3wCu.s:16     .text.gpio_set_cfg:0000000000000000 $a
+     /tmp/ccHH3wCu.s:22     .text.gpio_set_cfg:0000000000000000 gpio_set_cfg
+     /tmp/ccHH3wCu.s:82     .text.gpio_set_output:0000000000000000 $a
+     /tmp/ccHH3wCu.s:88     .text.gpio_set_output:0000000000000000 gpio_set_output
+     /tmp/ccHH3wCu.s:112    .text.gpio_set_input:0000000000000000 $a
+     /tmp/ccHH3wCu.s:118    .text.gpio_set_input:0000000000000000 gpio_set_input
+     /tmp/ccHH3wCu.s:142    .text.gpio_set_pull:0000000000000000 $a
+     /tmp/ccHH3wCu.s:148    .text.gpio_set_pull:0000000000000000 gpio_set_pull
+     /tmp/ccHH3wCu.s:161    .text.gpio_output:0000000000000000 $a
+     /tmp/ccHH3wCu.s:167    .text.gpio_output:0000000000000000 gpio_output
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

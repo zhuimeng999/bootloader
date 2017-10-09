@@ -1,0 +1,899 @@
+   1              		.cpu cortex-a53
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 4
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"clkpwr.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.pll_clk_pll_get_freq,"ax",%progbits
+  16              		.align	2
+  17              		.global	pll_clk_pll_get_freq
+  18              		.syntax unified
+  19              		.arm
+  20              		.fpu softvfp
+  22              	pll_clk_pll_get_freq:
+  23              	.LFB0:
+  24              		.file 1 "../lib/x6818/clkpwr.c"
+   1:../lib/x6818/clkpwr.c **** /*
+   2:../lib/x6818/clkpwr.c ****  * clkpwr.c
+   3:../lib/x6818/clkpwr.c ****  *
+   4:../lib/x6818/clkpwr.c ****  *  Created on: 2017年9月28日
+   5:../lib/x6818/clkpwr.c ****  *      Author: lucius
+   6:../lib/x6818/clkpwr.c ****  */
+   7:../lib/x6818/clkpwr.c **** 
+   8:../lib/x6818/clkpwr.c **** #include "x6818/clkpwr.h"
+   9:../lib/x6818/clkpwr.c **** 
+  10:../lib/x6818/clkpwr.c **** #define PLL_CLK_BYPASS_ENABLE (0u)
+  11:../lib/x6818/clkpwr.c **** #define PLL_CLK_BYPASS_DISABLE (1u)
+  12:../lib/x6818/clkpwr.c **** #define PLL_CLK_UPDATE_SRC (1u)
+  13:../lib/x6818/clkpwr.c **** 
+  14:../lib/x6818/clkpwr.c **** #define _PLL_ARRAY_GEN(_out, _pll, _p, _m, _k) \
+  15:../lib/x6818/clkpwr.c **** 		[PLL ## _pll ## _FREQ_ ## _out ## MHZ] = { \
+  16:../lib/x6818/clkpwr.c **** 				.reg_field = {\
+  17:../lib/x6818/clkpwr.c **** 						.pdiv = (_p),\
+  18:../lib/x6818/clkpwr.c **** 						.mdiv = (_m),\
+  19:../lib/x6818/clkpwr.c **** 						.sdiv = (_k)\
+  20:../lib/x6818/clkpwr.c **** 				}\
+  21:../lib/x6818/clkpwr.c **** 		},
+  22:../lib/x6818/clkpwr.c **** 
+  23:../lib/x6818/clkpwr.c **** const pllSetReg_t pll01_pms_predef[] = {
+  24:../lib/x6818/clkpwr.c **** _PLL_CLK_PLL_DEFINE(_PLL_ARRAY_GEN) };
+  25:../lib/x6818/clkpwr.c **** 
+  26:../lib/x6818/clkpwr.c **** typedef char sizecheck_pll_predef[
+  27:../lib/x6818/clkpwr.c **** 		(sizeof(pll01_pms_predef) / sizeof(pll01_pms_predef[0]) - PLL_FREQ_MAX) ?
+  28:../lib/x6818/clkpwr.c **** 				-1 : 1];
+  29:../lib/x6818/clkpwr.c **** 
+  30:../lib/x6818/clkpwr.c **** uint32_t pll_clk_pll_get_freq(pll_index_t index) {
+  25              		.loc 1 30 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              	.LVL0:
+  31:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  32:../lib/x6818/clkpwr.c **** 	pllSetReg_t pllsetreg_val = reg_set->pllsetreg[index];
+  33:../lib/x6818/clkpwr.c **** 	uint32_t temp = 0;
+  34:../lib/x6818/clkpwr.c **** 
+  35:../lib/x6818/clkpwr.c **** 	if (index > PLL_INDEX_1) {
+  30              		.loc 1 35 0
+  31 0000 010050E3 		cmp	r0, #1
+  32:../lib/x6818/clkpwr.c **** 	uint32_t temp = 0;
+  32              		.loc 1 32 0
+  33 0004 60309FE5 		ldr	r3, .L5
+  34 0008 022080E2 		add	r2, r0, #2
+  35              	.LBB2:
+  36:../lib/x6818/clkpwr.c **** 		pllSetReg_sscg_t pllsetreg_sscg_val = reg_set->pllsetreg_sscg[index];
+  36              		.loc 1 36 0
+  37 000c 12008082 		addhi	r0, r0, #18
+  38              	.LVL1:
+  39              	.LBE2:
+  30:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  40              		.loc 1 30 0
+  41 0010 10402DE9 		push	{r4, lr}
+  42              		.cfi_def_cfa_offset 8
+  43              		.cfi_offset 4, -8
+  44              		.cfi_offset 14, -4
+  45              	.LBB3:
+  37:../lib/x6818/clkpwr.c **** 		temp = (uint32_t) (((((pllsetreg_sscg_val.reg_field.k * 1000) / 65536)
+  46              		.loc 1 37 0
+  47 0014 FA1FA083 		movhi	r1, #1000
+  48              	.LBE3:
+  32:../lib/x6818/clkpwr.c **** 	uint32_t temp = 0;
+  49              		.loc 1 32 0
+  50 0018 022193E7 		ldr	r2, [r3, r2, lsl #2]
+  51              	.LVL2:
+  33:../lib/x6818/clkpwr.c **** 
+  52              		.loc 1 33 0
+  53 001c 0030A093 		movls	r3, #0
+  54              	.LBB4:
+  36:../lib/x6818/clkpwr.c **** 		temp = (uint32_t) (((((pllsetreg_sscg_val.reg_field.k * 1000) / 65536)
+  55              		.loc 1 36 0
+  56 0020 00319387 		ldrhi	r3, [r3, r0, lsl #2]
+  57              	.LVL3:
+  58              	.LBE4:
+  38:../lib/x6818/clkpwr.c **** 				* S5PV6818_OSC_INPUT) / pllsetreg_val.reg_field.pdiv)
+  39:../lib/x6818/clkpwr.c **** 				>> pllsetreg_val.reg_field.sdiv);
+  40:../lib/x6818/clkpwr.c **** 	}
+  41:../lib/x6818/clkpwr.c **** 
+  42:../lib/x6818/clkpwr.c **** 	temp = (uint32_t) (((((pllsetreg_val.reg_field.mdiv * S5PV6818_OSC_INPUT)
+  43:../lib/x6818/clkpwr.c **** 			/ pllsetreg_val.reg_field.pdiv) >> pllsetreg_val.reg_field.sdiv)
+  44:../lib/x6818/clkpwr.c **** 			* 1000) + temp);
+  45:../lib/x6818/clkpwr.c **** 
+  46:../lib/x6818/clkpwr.c **** 	return temp;
+  47:../lib/x6818/clkpwr.c **** }
+  59              		.loc 1 47 0
+  60 0024 FA0FA0E3 		mov	r0, #1000
+  32:../lib/x6818/clkpwr.c **** 	uint32_t temp = 0;
+  61              		.loc 1 32 0
+  62 0028 5244E9E7 		ubfx	r4, r2, #8, #10
+  63 002c 52C9E5E7 		ubfx	ip, r2, #18, #6
+  64              	.LBB5:
+  36:../lib/x6818/clkpwr.c **** 		temp = (uint32_t) (((((pllsetreg_sscg_val.reg_field.k * 1000) / 65536)
+  65              		.loc 1 36 0
+  66 0030 5338AF87 		sbfxhi	r3, r3, #16, #16
+  67              	.LVL4:
+  68              	.LBE5:
+  32:../lib/x6818/clkpwr.c **** 	uint32_t temp = 0;
+  69              		.loc 1 32 0
+  70 0034 72E0EFE6 		uxtb	lr, r2
+  71              	.LVL5:
+  42:../lib/x6818/clkpwr.c **** 			/ pllsetreg_val.reg_field.pdiv) >> pllsetreg_val.reg_field.sdiv)
+  72              		.loc 1 42 0
+  73 0038 C02D05E3 		movw	r2, #24000
+  74              	.LVL6:
+  75              	.LBB6:
+  37:../lib/x6818/clkpwr.c **** 				* S5PV6818_OSC_INPUT) / pllsetreg_val.reg_field.pdiv)
+  76              		.loc 1 37 0
+  77 003c 83016381 		smulbbhi	r3, r3, r1
+  78 0040 0118A083 		movhi	r1, #65536
+  79              	.LBE6:
+  42:../lib/x6818/clkpwr.c **** 			/ pllsetreg_val.reg_field.pdiv) >> pllsetreg_val.reg_field.sdiv)
+  80              		.loc 1 42 0
+  81 0044 920402E0 		mul	r2, r2, r4
+  82              	.LBB7:
+  37:../lib/x6818/clkpwr.c **** 				* S5PV6818_OSC_INPUT) / pllsetreg_val.reg_field.pdiv)
+  83              		.loc 1 37 0
+  84 0048 13F11187 		sdivhi	r1, r3, r1
+  38:../lib/x6818/clkpwr.c **** 				>> pllsetreg_val.reg_field.sdiv);
+  85              		.loc 1 38 0
+  86 004c C03D0583 		movwhi	r3, #24000
+  87              	.LBE7:
+  43:../lib/x6818/clkpwr.c **** 			* 1000) + temp);
+  88              		.loc 1 43 0
+  89 0050 12FC32E7 		udiv	r2, r2, ip
+  90              	.LBB8:
+  38:../lib/x6818/clkpwr.c **** 				>> pllsetreg_val.reg_field.sdiv);
+  91              		.loc 1 38 0
+  92 0054 93010380 		mulhi	r3, r3, r1
+  93              	.LBE8:
+  43:../lib/x6818/clkpwr.c **** 			* 1000) + temp);
+  94              		.loc 1 43 0
+  95 0058 322EA0E1 		lsr	r2, r2, lr
+  96              	.LBB9:
+  38:../lib/x6818/clkpwr.c **** 				>> pllsetreg_val.reg_field.sdiv);
+  97              		.loc 1 38 0
+  98 005c 13FC3387 		udivhi	r3, r3, ip
+  37:../lib/x6818/clkpwr.c **** 				* S5PV6818_OSC_INPUT) / pllsetreg_val.reg_field.pdiv)
+  99              		.loc 1 37 0
+ 100 0060 333EA081 		lsrhi	r3, r3, lr
+ 101              	.LVL7:
+ 102              	.LBE9:
+ 103              		.loc 1 47 0
+ 104 0064 903220E0 		mla	r0, r0, r2, r3
+ 105 0068 1080BDE8 		pop	{r4, pc}
+ 106              	.L6:
+ 107              		.align	2
+ 108              	.L5:
+ 109 006c 000001C0 		.word	-1073676288
+ 110              		.cfi_endproc
+ 111              	.LFE0:
+ 113              		.section	.text.clkpwr_pll_set_freq,"ax",%progbits
+ 114              		.align	2
+ 115              		.global	clkpwr_pll_set_freq
+ 116              		.syntax unified
+ 117              		.arm
+ 118              		.fpu softvfp
+ 120              	clkpwr_pll_set_freq:
+ 121              	.LFB1:
+  48:../lib/x6818/clkpwr.c **** 
+  49:../lib/x6818/clkpwr.c **** void clkpwr_pll_set_freq(pll_index_t index, pll_freq_t freq) {
+ 122              		.loc 1 49 0
+ 123              		.cfi_startproc
+ 124              		@ args = 0, pretend = 0, frame = 0
+ 125              		@ frame_needed = 0, uses_anonymous_args = 0
+ 126              	.LVL8:
+ 127 0000 30402DE9 		push	{r4, r5, lr}
+ 128              		.cfi_def_cfa_offset 12
+ 129              		.cfi_offset 4, -12
+ 130              		.cfi_offset 5, -8
+ 131              		.cfi_offset 14, -4
+  50:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  51:../lib/x6818/clkpwr.c **** 	pllSetReg_t pllsetreg_val = reg_set->pllsetreg[index];
+ 132              		.loc 1 51 0
+ 133 0004 025080E2 		add	r5, r0, #2
+  52:../lib/x6818/clkpwr.c **** 
+  53:../lib/x6818/clkpwr.c **** 	pllsetreg_val.reg_field.pdiv = pll01_pms_predef[freq].reg_field.pdiv;
+ 134              		.loc 1 53 0
+ 135 0008 70409FE5 		ldr	r4, .L17
+  51:../lib/x6818/clkpwr.c **** 
+ 136              		.loc 1 51 0
+ 137 000c 70309FE5 		ldr	r3, .L17+4
+ 138              		.loc 1 53 0
+ 139 0010 01C184E0 		add	ip, r4, r1, lsl #2
+  54:../lib/x6818/clkpwr.c **** 	pllsetreg_val.reg_field.mdiv = pll01_pms_predef[freq].reg_field.mdiv;
+ 140              		.loc 1 54 0
+ 141 0014 01E194E7 		ldr	lr, [r4, r1, lsl #2]
+  51:../lib/x6818/clkpwr.c **** 
+ 142              		.loc 1 51 0
+ 143 0018 052193E7 		ldr	r2, [r3, r5, lsl #2]
+ 144              	.LVL9:
+  55:../lib/x6818/clkpwr.c **** 	pllsetreg_val.reg_field.sdiv = pll01_pms_predef[freq].reg_field.sdiv;
+  56:../lib/x6818/clkpwr.c **** 
+  57:../lib/x6818/clkpwr.c **** 	reg_set->pllsetreg[index] = pllsetreg_val;
+ 145              		.loc 1 57 0
+ 146 001c 0111D4E7 		ldrb	r1, [r4, r1, lsl #2]	@ zero_extendqisi2
+ 147              	.LVL10:
+  54:../lib/x6818/clkpwr.c **** 	pllsetreg_val.reg_field.mdiv = pll01_pms_predef[freq].reg_field.mdiv;
+ 148              		.loc 1 54 0
+ 149 0020 5EE4E9E7 		ubfx	lr, lr, #8, #10
+  53:../lib/x6818/clkpwr.c **** 	pllsetreg_val.reg_field.mdiv = pll01_pms_predef[freq].reg_field.mdiv;
+ 150              		.loc 1 53 0
+ 151 0024 02C0DCE5 		ldrb	ip, [ip, #2]	@ zero_extendqisi2
+ 152              		.loc 1 57 0
+ 153 0028 1120C7E7 		bfi	r2, r1, #0, #8
+ 154              	.LVL11:
+  58:../lib/x6818/clkpwr.c **** 
+  59:../lib/x6818/clkpwr.c **** 	reg_set->clkmodereg0.reg_value |= (1 << index);
+ 155              		.loc 1 59 0
+ 156 002c 0110A0E3 		mov	r1, #1
+  57:../lib/x6818/clkpwr.c **** 
+ 157              		.loc 1 57 0
+ 158 0030 1E24D1E7 		bfi	r2, lr, #8, #10
+  53:../lib/x6818/clkpwr.c **** 	pllsetreg_val.reg_field.mdiv = pll01_pms_predef[freq].reg_field.mdiv;
+ 159              		.loc 1 53 0
+ 160 0034 2CC1A0E1 		lsr	ip, ip, #2
+  57:../lib/x6818/clkpwr.c **** 
+ 161              		.loc 1 57 0
+ 162 0038 1C29D7E7 		bfi	r2, ip, #18, #6
+ 163 003c 052183E7 		str	r2, [r3, r5, lsl #2]
+ 164              		.loc 1 59 0
+ 165 0040 002093E5 		ldr	r2, [r3]
+ 166              	.LVL12:
+ 167 0044 112082E1 		orr	r2, r2, r1, lsl r0
+ 168 0048 002083E5 		str	r2, [r3]
+ 169              	.L8:
+  60:../lib/x6818/clkpwr.c **** 	while (reg_set->clkmodereg0.reg_field.wait_update_pll == 1u)
+ 170              		.loc 1 60 0 discriminator 1
+ 171 004c 002093E5 		ldr	r2, [r3]
+ 172 0050 000052E3 		cmp	r2, #0
+ 173 0054 FCFFFFBA 		blt	.L8
+  61:../lib/x6818/clkpwr.c **** 		;
+  62:../lib/x6818/clkpwr.c **** 
+  63:../lib/x6818/clkpwr.c **** 	if ((index == PLL_INDEX_0) || (index == PLL_INDEX_1)) {
+ 174              		.loc 1 63 0
+ 175 0058 010050E3 		cmp	r0, #1
+ 176 005c 3080BD88 		pophi	{r4, r5, pc}
+ 177              	.LVL13:
+ 178              	.LBB12:
+ 179              	.LBB13:
+  64:../lib/x6818/clkpwr.c **** 		reg_set->pwrmode.reg_field.chgpll = 1;
+ 180              		.loc 1 64 0
+ 181 0060 282293E5 		ldr	r2, [r3, #552]
+ 182 0064 022982E3 		orr	r2, r2, #32768
+ 183 0068 282283E5 		str	r2, [r3, #552]
+  65:../lib/x6818/clkpwr.c **** 
+  66:../lib/x6818/clkpwr.c **** 		while (reg_set->pwrmode.reg_field.chgpll == 1)
+ 184              		.loc 1 66 0
+ 185 006c 10209FE5 		ldr	r2, .L17+4
+ 186              	.L10:
+ 187 0070 283292E5 		ldr	r3, [r2, #552]
+ 188 0074 020913E3 		tst	r3, #32768
+ 189 0078 FCFFFF1A 		bne	.L10
+ 190 007c 3080BDE8 		pop	{r4, r5, pc}
+ 191              	.L18:
+ 192              		.align	2
+ 193              	.L17:
+ 194 0080 00000000 		.word	.LANCHOR0
+ 195 0084 000001C0 		.word	-1073676288
+ 196              	.LBE13:
+ 197              	.LBE12:
+ 198              		.cfi_endproc
+ 199              	.LFE1:
+ 201              		.section	.text.pll_clk_sys_get_src,"ax",%progbits
+ 202              		.align	2
+ 203              		.global	pll_clk_sys_get_src
+ 204              		.syntax unified
+ 205              		.arm
+ 206              		.fpu softvfp
+ 208              	pll_clk_sys_get_src:
+ 209              	.LFB2:
+  67:../lib/x6818/clkpwr.c **** 			;
+  68:../lib/x6818/clkpwr.c **** 	}
+  69:../lib/x6818/clkpwr.c **** }
+  70:../lib/x6818/clkpwr.c **** 
+  71:../lib/x6818/clkpwr.c **** pll_index_t pll_clk_sys_get_src(pll_clk_sys_index_t clk_index) {
+ 210              		.loc 1 71 0
+ 211              		.cfi_startproc
+ 212              		@ args = 0, pretend = 0, frame = 0
+ 213              		@ frame_needed = 0, uses_anonymous_args = 0
+ 214              		@ link register save eliminated.
+ 215              	.LVL14:
+  72:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  73:../lib/x6818/clkpwr.c **** 	clkdivreg_t *clkdivreg = (clkdivreg_t *) &reg_set->DVOREG[clk_index];
+ 216              		.loc 1 73 0
+ 217 0000 0001A0E1 		lsl	r0, r0, #2
+ 218              	.LVL15:
+ 219 0004 010880E2 		add	r0, r0, #65536
+ 220 0008 830180E2 		add	r0, r0, #-1073741792
+ 221              	.LVL16:
+  74:../lib/x6818/clkpwr.c **** 	return (pll_index_t) clkdivreg->reg_field.clksel_bclk;
+ 222              		.loc 1 74 0
+ 223 000c 000090E5 		ldr	r0, [r0]
+ 224              	.LVL17:
+  75:../lib/x6818/clkpwr.c **** }
+ 225              		.loc 1 75 0
+ 226 0010 070000E2 		and	r0, r0, #7
+ 227 0014 1EFF2FE1 		bx	lr
+ 228              		.cfi_endproc
+ 229              	.LFE2:
+ 231              		.section	.text.pll_clk_sys_get_bclk_freq,"ax",%progbits
+ 232              		.align	2
+ 233              		.global	pll_clk_sys_get_bclk_freq
+ 234              		.syntax unified
+ 235              		.arm
+ 236              		.fpu softvfp
+ 238              	pll_clk_sys_get_bclk_freq:
+ 239              	.LFB3:
+  76:../lib/x6818/clkpwr.c **** 
+  77:../lib/x6818/clkpwr.c **** uint32_t pll_clk_sys_get_bclk_freq(pll_clk_sys_index_t index) {
+ 240              		.loc 1 77 0
+ 241              		.cfi_startproc
+ 242              		@ args = 0, pretend = 0, frame = 0
+ 243              		@ frame_needed = 0, uses_anonymous_args = 0
+ 244              	.LVL18:
+  78:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  79:../lib/x6818/clkpwr.c **** 	clkdivreg_t *clkdivreg = (clkdivreg_t *) &reg_set->DVOREG[index];
+ 245              		.loc 1 79 0
+ 246 0000 0001A0E1 		lsl	r0, r0, #2
+ 247              	.LVL19:
+  77:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 248              		.loc 1 77 0
+ 249 0004 10402DE9 		push	{r4, lr}
+ 250              		.cfi_def_cfa_offset 8
+ 251              		.cfi_offset 4, -8
+ 252              		.cfi_offset 14, -4
+ 253              		.loc 1 79 0
+ 254 0008 014880E2 		add	r4, r0, #65536
+ 255 000c 834184E2 		add	r4, r4, #-1073741792
+ 256              	.LVL20:
+  80:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+  81:../lib/x6818/clkpwr.c **** 			(pll_index_t) clkdivreg->reg_field.clksel_bclk);
+ 257              		.loc 1 81 0
+ 258 0010 000094E5 		ldr	r0, [r4]
+  80:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+ 259              		.loc 1 80 0
+ 260 0014 070000E2 		and	r0, r0, #7
+ 261 0018 FEFFFFEB 		bl	pll_clk_pll_get_freq
+ 262              	.LVL21:
+  82:../lib/x6818/clkpwr.c **** 
+  83:../lib/x6818/clkpwr.c **** 	return src_freq / (clkdivreg->reg_field.clkdiv_bclk + 1u);
+ 263              		.loc 1 83 0
+ 264 001c 003094E5 		ldr	r3, [r4]
+ 265 0020 D331E5E7 		ubfx	r3, r3, #3, #6
+ 266 0024 013083E2 		add	r3, r3, #1
+  84:../lib/x6818/clkpwr.c **** }
+ 267              		.loc 1 84 0
+ 268 0028 10F330E7 		udiv	r0, r0, r3
+ 269              	.LVL22:
+ 270 002c 1080BDE8 		pop	{r4, pc}
+ 271              		.cfi_endproc
+ 272              	.LFE3:
+ 274              		.section	.text.pll_clk_sys_get_pclk_freq,"ax",%progbits
+ 275              		.align	2
+ 276              		.global	pll_clk_sys_get_pclk_freq
+ 277              		.syntax unified
+ 278              		.arm
+ 279              		.fpu softvfp
+ 281              	pll_clk_sys_get_pclk_freq:
+ 282              	.LFB4:
+  85:../lib/x6818/clkpwr.c **** 
+  86:../lib/x6818/clkpwr.c **** uint32_t pll_clk_sys_get_pclk_freq(pll_clk_sys_index_t index) {
+ 283              		.loc 1 86 0
+ 284              		.cfi_startproc
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+ 287              	.LVL23:
+  87:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  88:../lib/x6818/clkpwr.c **** 	clkdivreg_t *clkdivreg = (clkdivreg_t *) &reg_set->DVOREG[index];
+ 288              		.loc 1 88 0
+ 289 0000 0001A0E1 		lsl	r0, r0, #2
+ 290              	.LVL24:
+  86:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 291              		.loc 1 86 0
+ 292 0004 10402DE9 		push	{r4, lr}
+ 293              		.cfi_def_cfa_offset 8
+ 294              		.cfi_offset 4, -8
+ 295              		.cfi_offset 14, -4
+ 296              		.loc 1 88 0
+ 297 0008 014880E2 		add	r4, r0, #65536
+ 298 000c 834184E2 		add	r4, r4, #-1073741792
+ 299              	.LVL25:
+  89:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+  90:../lib/x6818/clkpwr.c **** 			(pll_index_t) clkdivreg->reg_field.clksel_bclk);
+ 300              		.loc 1 90 0
+ 301 0010 000094E5 		ldr	r0, [r4]
+  89:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+ 302              		.loc 1 89 0
+ 303 0014 070000E2 		and	r0, r0, #7
+ 304 0018 FEFFFFEB 		bl	pll_clk_pll_get_freq
+ 305              	.LVL26:
+  91:../lib/x6818/clkpwr.c **** 	uint32_t bclk = src_freq / (clkdivreg->reg_field.clkdiv_bclk + 1u);
+ 306              		.loc 1 91 0
+ 307 001c 003094E5 		ldr	r3, [r4]
+  92:../lib/x6818/clkpwr.c **** 
+  93:../lib/x6818/clkpwr.c **** 	return bclk / (clkdivreg->reg_field.clkdiv_pclk + 1u);
+ 308              		.loc 1 93 0
+ 309 0020 002094E5 		ldr	r2, [r4]
+  91:../lib/x6818/clkpwr.c **** 	uint32_t bclk = src_freq / (clkdivreg->reg_field.clkdiv_bclk + 1u);
+ 310              		.loc 1 91 0
+ 311 0024 D331E5E7 		ubfx	r3, r3, #3, #6
+ 312              	.LVL27:
+ 313 0028 013083E2 		add	r3, r3, #1
+ 314              		.loc 1 93 0
+ 315 002c D224E5E7 		ubfx	r2, r2, #9, #6
+ 316 0030 012082E2 		add	r2, r2, #1
+  91:../lib/x6818/clkpwr.c **** 	uint32_t bclk = src_freq / (clkdivreg->reg_field.clkdiv_bclk + 1u);
+ 317              		.loc 1 91 0
+ 318 0034 10F330E7 		udiv	r0, r0, r3
+ 319              	.LVL28:
+  94:../lib/x6818/clkpwr.c **** }
+ 320              		.loc 1 94 0
+ 321 0038 10F230E7 		udiv	r0, r0, r2
+ 322 003c 1080BDE8 		pop	{r4, pc}
+ 323              		.cfi_endproc
+ 324              	.LFE4:
+ 326              		.section	.text.pll_clk_sys_select_src,"ax",%progbits
+ 327              		.align	2
+ 328              		.global	pll_clk_sys_select_src
+ 329              		.syntax unified
+ 330              		.arm
+ 331              		.fpu softvfp
+ 333              	pll_clk_sys_select_src:
+ 334              	.LFB5:
+  95:../lib/x6818/clkpwr.c **** 
+  96:../lib/x6818/clkpwr.c **** void pll_clk_sys_select_src(pll_clk_sys_index_t clk_index,
+  97:../lib/x6818/clkpwr.c **** 		pll_index_t src_index) {
+ 335              		.loc 1 97 0
+ 336              		.cfi_startproc
+ 337              		@ args = 0, pretend = 0, frame = 0
+ 338              		@ frame_needed = 0, uses_anonymous_args = 0
+ 339              		@ link register save eliminated.
+ 340              	.LVL29:
+  98:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+  99:../lib/x6818/clkpwr.c **** 	clkdivreg_t *clkdivreg = (clkdivreg_t *) &reg_set->DVOREG[clk_index];
+ 341              		.loc 1 99 0
+ 342 0000 0001A0E1 		lsl	r0, r0, #2
+ 343              	.LVL30:
+ 344 0004 010880E2 		add	r0, r0, #65536
+ 345 0008 830180E2 		add	r0, r0, #-1073741792
+ 346              	.LVL31:
+ 100:../lib/x6818/clkpwr.c **** 	clkdivreg->reg_field.clksel_bclk = (uint32_t) src_index;
+ 347              		.loc 1 100 0
+ 348 000c 003090E5 		ldr	r3, [r0]
+ 349 0010 1130C2E7 		bfi	r3, r1, #0, #3
+ 350 0014 003080E5 		str	r3, [r0]
+ 351 0018 1EFF2FE1 		bx	lr
+ 352              		.cfi_endproc
+ 353              	.LFE5:
+ 355              		.section	.text.clkpwr_sys_set_bclk_freq,"ax",%progbits
+ 356              		.align	2
+ 357              		.global	clkpwr_sys_set_bclk_freq
+ 358              		.syntax unified
+ 359              		.arm
+ 360              		.fpu softvfp
+ 362              	clkpwr_sys_set_bclk_freq:
+ 363              	.LFB6:
+ 101:../lib/x6818/clkpwr.c **** }
+ 102:../lib/x6818/clkpwr.c **** 
+ 103:../lib/x6818/clkpwr.c **** void clkpwr_sys_set_bclk_freq(pll_clk_sys_index_t index, uint32_t freq) {
+ 364              		.loc 1 103 0
+ 365              		.cfi_startproc
+ 366              		@ args = 0, pretend = 0, frame = 0
+ 367              		@ frame_needed = 0, uses_anonymous_args = 0
+ 368              	.LVL32:
+ 104:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 105:../lib/x6818/clkpwr.c **** 	clkdivreg_t *clkdivreg = (clkdivreg_t *) &reg_set->DVOREG[index];
+ 369              		.loc 1 105 0
+ 370 0000 0001A0E1 		lsl	r0, r0, #2
+ 371              	.LVL33:
+ 103:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 372              		.loc 1 103 0
+ 373 0004 70402DE9 		push	{r4, r5, r6, lr}
+ 374              		.cfi_def_cfa_offset 16
+ 375              		.cfi_offset 4, -16
+ 376              		.cfi_offset 5, -12
+ 377              		.cfi_offset 6, -8
+ 378              		.cfi_offset 14, -4
+ 379              		.loc 1 105 0
+ 380 0008 014880E2 		add	r4, r0, #65536
+ 381 000c 834184E2 		add	r4, r4, #-1073741792
+ 382              	.LVL34:
+ 103:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 383              		.loc 1 103 0
+ 384 0010 0150A0E1 		mov	r5, r1
+ 106:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+ 107:../lib/x6818/clkpwr.c **** 			(pll_index_t) clkdivreg->reg_field.clksel_bclk);
+ 385              		.loc 1 107 0
+ 386 0014 000094E5 		ldr	r0, [r4]
+ 106:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+ 387              		.loc 1 106 0
+ 388 0018 070000E2 		and	r0, r0, #7
+ 389 001c FEFFFFEB 		bl	pll_clk_pll_get_freq
+ 390              	.LVL35:
+ 108:../lib/x6818/clkpwr.c **** 
+ 109:../lib/x6818/clkpwr.c **** 	clkdivreg->reg_field.clkdiv_bclk = src_freq / freq - 1u;
+ 391              		.loc 1 109 0
+ 392 0020 003094E5 		ldr	r3, [r4]
+ 393 0024 10F530E7 		udiv	r0, r0, r5
+ 394              	.LVL36:
+ 395 0028 010040E2 		sub	r0, r0, #1
+ 396 002c 9031C8E7 		bfi	r3, r0, #3, #6
+ 397 0030 003084E5 		str	r3, [r4]
+ 398 0034 7080BDE8 		pop	{r4, r5, r6, pc}
+ 399              		.cfi_endproc
+ 400              	.LFE6:
+ 402              		.section	.text.clkpwr_sys_set_pclk_freq,"ax",%progbits
+ 403              		.align	2
+ 404              		.global	clkpwr_sys_set_pclk_freq
+ 405              		.syntax unified
+ 406              		.arm
+ 407              		.fpu softvfp
+ 409              	clkpwr_sys_set_pclk_freq:
+ 410              	.LFB7:
+ 110:../lib/x6818/clkpwr.c **** }
+ 111:../lib/x6818/clkpwr.c **** 
+ 112:../lib/x6818/clkpwr.c **** void clkpwr_sys_set_pclk_freq(pll_clk_sys_index_t index, uint32_t freq) {
+ 411              		.loc 1 112 0
+ 412              		.cfi_startproc
+ 413              		@ args = 0, pretend = 0, frame = 0
+ 414              		@ frame_needed = 0, uses_anonymous_args = 0
+ 415              	.LVL37:
+ 113:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 114:../lib/x6818/clkpwr.c **** 	clkdivreg_t *clkdivreg = (clkdivreg_t *) &reg_set->DVOREG[index];
+ 416              		.loc 1 114 0
+ 417 0000 0001A0E1 		lsl	r0, r0, #2
+ 418              	.LVL38:
+ 112:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 419              		.loc 1 112 0
+ 420 0004 70402DE9 		push	{r4, r5, r6, lr}
+ 421              		.cfi_def_cfa_offset 16
+ 422              		.cfi_offset 4, -16
+ 423              		.cfi_offset 5, -12
+ 424              		.cfi_offset 6, -8
+ 425              		.cfi_offset 14, -4
+ 426              		.loc 1 114 0
+ 427 0008 014880E2 		add	r4, r0, #65536
+ 428 000c 834184E2 		add	r4, r4, #-1073741792
+ 429              	.LVL39:
+ 112:../lib/x6818/clkpwr.c **** 	clkpwr_regset_t *reg_set = (clkpwr_regset_t *) PHY_BASEADDR_CLKPWR_MODULE;
+ 430              		.loc 1 112 0
+ 431 0010 0150A0E1 		mov	r5, r1
+ 115:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+ 116:../lib/x6818/clkpwr.c **** 			(pll_index_t) clkdivreg->reg_field.clksel_bclk);
+ 432              		.loc 1 116 0
+ 433 0014 000094E5 		ldr	r0, [r4]
+ 115:../lib/x6818/clkpwr.c **** 	uint32_t src_freq = pll_clk_pll_get_freq(
+ 434              		.loc 1 115 0
+ 435 0018 070000E2 		and	r0, r0, #7
+ 436 001c FEFFFFEB 		bl	pll_clk_pll_get_freq
+ 437              	.LVL40:
+ 117:../lib/x6818/clkpwr.c **** 	uint32_t bclk = src_freq / (clkdivreg->reg_field.clkdiv_bclk + 1u);
+ 438              		.loc 1 117 0
+ 439 0020 003094E5 		ldr	r3, [r4]
+ 118:../lib/x6818/clkpwr.c **** 
+ 119:../lib/x6818/clkpwr.c **** 	clkdivreg->reg_field.clkdiv_pclk = bclk / freq - 1u;
+ 440              		.loc 1 119 0
+ 441 0024 002094E5 		ldr	r2, [r4]
+ 117:../lib/x6818/clkpwr.c **** 	uint32_t bclk = src_freq / (clkdivreg->reg_field.clkdiv_bclk + 1u);
+ 442              		.loc 1 117 0
+ 443 0028 D331E5E7 		ubfx	r3, r3, #3, #6
+ 444              	.LVL41:
+ 445 002c 013083E2 		add	r3, r3, #1
+ 446 0030 10F333E7 		udiv	r3, r0, r3
+ 447              		.loc 1 119 0
+ 448 0034 13F533E7 		udiv	r3, r3, r5
+ 449 0038 013043E2 		sub	r3, r3, #1
+ 450 003c 9324CEE7 		bfi	r2, r3, #9, #6
+ 451 0040 002084E5 		str	r2, [r4]
+ 452 0044 7080BDE8 		pop	{r4, r5, r6, pc}
+ 453              		.cfi_endproc
+ 454              	.LFE7:
+ 456              		.section	.text.clkpwr_pll_init,"ax",%progbits
+ 457              		.align	2
+ 458              		.global	clkpwr_pll_init
+ 459              		.syntax unified
+ 460              		.arm
+ 461              		.fpu softvfp
+ 463              	clkpwr_pll_init:
+ 464              	.LFB8:
+ 120:../lib/x6818/clkpwr.c **** }
+ 121:../lib/x6818/clkpwr.c **** 
+ 122:../lib/x6818/clkpwr.c **** void clkpwr_pll_init(void)
+ 123:../lib/x6818/clkpwr.c **** {
+ 465              		.loc 1 123 0
+ 466              		.cfi_startproc
+ 467              		@ args = 0, pretend = 0, frame = 0
+ 468              		@ frame_needed = 0, uses_anonymous_args = 0
+ 469 0000 10402DE9 		push	{r4, lr}
+ 470              		.cfi_def_cfa_offset 8
+ 471              		.cfi_offset 4, -8
+ 472              		.cfi_offset 14, -4
+ 124:../lib/x6818/clkpwr.c **** 	clkpwr_pll_set_freq(PLL_INDEX_0, PLL01_FREQ_800MHZ);
+ 473              		.loc 1 124 0
+ 474 0004 0C10A0E3 		mov	r1, #12
+ 475 0008 0000A0E3 		mov	r0, #0
+ 476 000c FEFFFFEB 		bl	clkpwr_pll_set_freq
+ 477              	.LVL42:
+ 125:../lib/x6818/clkpwr.c **** 	clkpwr_pll_set_freq(PLL_INDEX_1, PLL01_FREQ_800MHZ);
+ 478              		.loc 1 125 0
+ 479 0010 0C10A0E3 		mov	r1, #12
+ 480 0014 0100A0E3 		mov	r0, #1
+ 481 0018 FEFFFFEB 		bl	clkpwr_pll_set_freq
+ 482              	.LVL43:
+ 126:../lib/x6818/clkpwr.c **** 	clkpwr_pll_set_freq(PLL_INDEX_2, PLL23_FREQ_800MHZ);
+ 483              		.loc 1 126 0
+ 484 001c 2E10A0E3 		mov	r1, #46
+ 485 0020 0200A0E3 		mov	r0, #2
+ 486 0024 FEFFFFEB 		bl	clkpwr_pll_set_freq
+ 487              	.LVL44:
+ 127:../lib/x6818/clkpwr.c **** 	clkpwr_pll_set_freq(PLL_INDEX_3, PLL23_FREQ_800MHZ);
+ 488              		.loc 1 127 0
+ 489 0028 2E10A0E3 		mov	r1, #46
+ 490 002c 0300A0E3 		mov	r0, #3
+ 491 0030 FEFFFFEB 		bl	clkpwr_pll_set_freq
+ 492              	.LVL45:
+ 128:../lib/x6818/clkpwr.c **** 	clkpwr_sys_set_bclk_freq(PLL_CLK_SYS_CPU0, 800);
+ 493              		.loc 1 128 0
+ 494 0034 321EA0E3 		mov	r1, #800
+ 495 0038 0000A0E3 		mov	r0, #0
+ 496 003c FEFFFFEB 		bl	clkpwr_sys_set_bclk_freq
+ 497              	.LVL46:
+ 129:../lib/x6818/clkpwr.c **** 	clkpwr_sys_set_pclk_freq(PLL_CLK_SYS_CPU0, 200);
+ 498              		.loc 1 129 0
+ 499 0040 C810A0E3 		mov	r1, #200
+ 500 0044 0000A0E3 		mov	r0, #0
+ 501 0048 FEFFFFEB 		bl	clkpwr_sys_set_pclk_freq
+ 502              	.LVL47:
+ 130:../lib/x6818/clkpwr.c **** 	clkpwr_sys_set_bclk_freq(PLL_CLK_SYS_CPU1, 800);
+ 503              		.loc 1 130 0
+ 504 004c 321EA0E3 		mov	r1, #800
+ 505 0050 0700A0E3 		mov	r0, #7
+ 506 0054 FEFFFFEB 		bl	clkpwr_sys_set_bclk_freq
+ 507              	.LVL48:
+ 131:../lib/x6818/clkpwr.c **** 	clkpwr_sys_set_pclk_freq(PLL_CLK_SYS_CPU1, 200);
+ 508              		.loc 1 131 0
+ 509 0058 C810A0E3 		mov	r1, #200
+ 510 005c 0700A0E3 		mov	r0, #7
+ 132:../lib/x6818/clkpwr.c **** }
+ 511              		.loc 1 132 0
+ 512 0060 1040BDE8 		pop	{r4, lr}
+ 513              		.cfi_restore 14
+ 514              		.cfi_restore 4
+ 515              		.cfi_def_cfa_offset 0
+ 131:../lib/x6818/clkpwr.c **** 	clkpwr_sys_set_pclk_freq(PLL_CLK_SYS_CPU1, 200);
+ 516              		.loc 1 131 0
+ 517 0064 FEFFFFEA 		b	clkpwr_sys_set_pclk_freq
+ 518              	.LVL49:
+ 519              		.cfi_endproc
+ 520              	.LFE8:
+ 522              		.global	pll01_pms_predef
+ 523              		.section	.rodata.pll01_pms_predef,"a",%progbits
+ 524              		.align	2
+ 525              		.set	.LANCHOR0,. + 0
+ 528              	pll01_pms_predef:
+ 529 0000 00       		.byte	0
+ 530 0001 FA       		.byte	250
+ 531 0002 0C       		.byte	12
+ 532 0003 00       		.space	1
+ 533 0004 00       		.byte	0
+ 534 0005 DB       		.byte	219
+ 535 0006 19       		.byte	25
+ 536 0007 00       		.space	1
+ 537 0008 00       		.byte	0
+ 538 0009 FF       		.byte	255
+ 539 000a 0C       		.byte	12
+ 540 000b 00       		.space	1
+ 541 000c 00       		.byte	0
+ 542 000d A9       		.byte	169
+ 543 000e 19       		.byte	25
+ 544 000f 00       		.space	1
+ 545 0010 00       		.byte	0
+ 546 0011 C8       		.byte	200
+ 547 0012 0C       		.byte	12
+ 548 0013 00       		.space	1
+ 549 0014 00       		.byte	0
+ 550 0015 FA       		.byte	250
+ 551 0016 10       		.byte	16
+ 552 0017 00       		.space	1
+ 553 0018 00       		.byte	0
+ 554 0019 AF       		.byte	175
+ 555 001a 0C       		.byte	12
+ 556 001b 00       		.space	1
+ 557 001c 00       		.byte	0
+ 558 001d 45       		.byte	69
+ 559 001e 19       		.byte	25
+ 560 001f 00       		.space	1
+ 561 0020 01       		.byte	1
+ 562 0021 2C       		.byte	44
+ 563 0022 0D       		.byte	13
+ 564 0023 00       		.space	1
+ 565 0024 01       		.byte	1
+ 566 0025 13       		.byte	19
+ 567 0026 0D       		.byte	13
+ 568 0027 00       		.space	1
+ 569 0028 01       		.byte	1
+ 570 0029 FA       		.byte	250
+ 571 002a 0C       		.byte	12
+ 572 002b 00       		.space	1
+ 573 002c 01       		.byte	1
+ 574 002d E1       		.byte	225
+ 575 002e 0C       		.byte	12
+ 576 002f 00       		.space	1
+ 577 0030 01       		.byte	1
+ 578 0031 C8       		.byte	200
+ 579 0032 0C       		.byte	12
+ 580 0033 00       		.space	1
+ 581 0034 01       		.byte	1
+ 582 0035 C3       		.byte	195
+ 583 0036 0C       		.byte	12
+ 584 0037 00       		.space	1
+ 585 0038 01       		.byte	1
+ 586 0039 BE       		.byte	190
+ 587 003a 0C       		.byte	12
+ 588 003b 00       		.space	1
+ 589 003c 01       		.byte	1
+ 590 003d B9       		.byte	185
+ 591 003e 0C       		.byte	12
+ 592 003f 00       		.space	1
+ 593 0040 01       		.byte	1
+ 594 0041 B4       		.byte	180
+ 595 0042 0C       		.byte	12
+ 596 0043 00       		.space	1
+ 597 0044 01       		.byte	1
+ 598 0045 AF       		.byte	175
+ 599 0046 0C       		.byte	12
+ 600 0047 00       		.space	1
+ 601 0048 01       		.byte	1
+ 602 0049 DE       		.byte	222
+ 603 004a 10       		.byte	16
+ 604 004b 00       		.space	1
+ 605 004c 02       		.byte	2
+ 606 004d 2C       		.byte	44
+ 607 004e 0D       		.byte	13
+ 608 004f 00       		.space	1
+ 609 0050 02       		.byte	2
+ 610 0051 13       		.byte	19
+ 611 0052 0D       		.byte	13
+ 612 0053 00       		.space	1
+ 613 0054 02       		.byte	2
+ 614 0055 15       		.byte	21
+ 615 0056 1A       		.byte	26
+ 616 0057 00       		.space	1
+ 617 0058 02       		.byte	2
+ 618 0059 F5       		.byte	245
+ 619 005a 0C       		.byte	12
+ 620 005b 00       		.space	1
+ 621 005c 02       		.byte	2
+ 622 005d EB       		.byte	235
+ 623 005e 0C       		.byte	12
+ 624 005f 00       		.space	1
+ 625 0060 02       		.byte	2
+ 626 0061 E6       		.byte	230
+ 627 0062 0C       		.byte	12
+ 628 0063 00       		.space	1
+ 629 0064 02       		.byte	2
+ 630 0065 E1       		.byte	225
+ 631 0066 0C       		.byte	12
+ 632 0067 00       		.space	1
+ 633 0068 02       		.byte	2
+ 634 0069 DC       		.byte	220
+ 635 006a 0C       		.byte	12
+ 636 006b 00       		.space	1
+ 637 006c 02       		.byte	2
+ 638 006d D2       		.byte	210
+ 639 006e 0C       		.byte	12
+ 640 006f 00       		.space	1
+ 641 0070 02       		.byte	2
+ 642 0071 C8       		.byte	200
+ 643 0072 0C       		.byte	12
+ 644 0073 00       		.space	1
+ 645 0074 02       		.byte	2
+ 646 0075 BE       		.byte	190
+ 647 0076 0C       		.byte	12
+ 648 0077 00       		.space	1
+ 649 0078 02       		.byte	2
+ 650 0079 B9       		.byte	185
+ 651 007a 0C       		.byte	12
+ 652 007b 00       		.space	1
+ 653 007c 02       		.byte	2
+ 654 007d AF       		.byte	175
+ 655 007e 0C       		.byte	12
+ 656 007f 00       		.space	1
+ 657 0080 02       		.byte	2
+ 658 0081 A5       		.byte	165
+ 659 0082 0C       		.byte	12
+ 660 0083 00       		.space	1
+ 661 0084 03       		.byte	3
+ 662 0085 2C       		.byte	44
+ 663 0086 0D       		.byte	13
+ 664 0087 00       		.space	1
+ 665 0088 03       		.byte	3
+ 666 0089 0A       		.byte	10
+ 667 008a 0D       		.byte	13
+ 668 008b 00       		.space	1
+ 669 008c 03       		.byte	3
+ 670 008d FA       		.byte	250
+ 671 008e 0C       		.byte	12
+ 672 008f 00       		.space	1
+ 673 0090 03       		.byte	3
+ 674 0091 DC       		.byte	220
+ 675 0092 0C       		.byte	12
+ 676 0093 00       		.space	1
+ 677 0094 03       		.byte	3
+ 678 0095 C8       		.byte	200
+ 679 0096 0C       		.byte	12
+ 680 0097 00       		.space	1
+ 681 0098 03       		.byte	3
+ 682 0099 A6       		.byte	166
+ 683 009a 0C       		.byte	12
+ 684 009b 00       		.space	1
+ 685 009c 04       		.byte	4
+ 686 009d 27       		.byte	39
+ 687 009e 0D       		.byte	13
+ 688 009f 00       		.space	1
+ 689 00a0 04       		.byte	4
+ 690 00a1 0A       		.byte	10
+ 691 00a2 0D       		.byte	13
+ 692 00a3 00       		.space	1
+ 693 00a4 04       		.byte	4
+ 694 00a5 FA       		.byte	250
+ 695 00a6 0C       		.byte	12
+ 696 00a7 00       		.space	1
+ 697 00a8 04       		.byte	4
+ 698 00a9 C8       		.byte	200
+ 699 00aa 0C       		.byte	12
+ 700 00ab 00       		.space	1
+ 701 00ac 04       		.byte	4
+ 702 00ad C0       		.byte	192
+ 703 00ae 0C       		.byte	12
+ 704 00af 00       		.space	1
+ 705 00b0 04       		.byte	4
+ 706 00b1 60       		.byte	96
+ 707 00b2 0C       		.byte	12
+ 708 00b3 00       		.space	1
+ 709 00b4 00       		.byte	0
+ 710 00b5 C8       		.byte	200
+ 711 00b6 0C       		.byte	12
+ 712 00b7 00       		.space	1
+ 713 00b8 01       		.byte	1
+ 714 00b9 C8       		.byte	200
+ 715 00ba 0C       		.byte	12
+ 716 00bb 00       		.space	1
+ 717              		.text
+ 718              	.Letext0:
+ 719              		.file 2 "/usr/include/newlib/machine/_default_types.h"
+ 720              		.file 3 "/usr/include/newlib/sys/_stdint.h"
+ 721              		.file 4 "/home/lucius/Projects/eclipse-workspace/bootloader/include/x6818/clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 clkpwr.c
+     /tmp/ccwVWXoQ.s:16     .text.pll_clk_pll_get_freq:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:22     .text.pll_clk_pll_get_freq:0000000000000000 pll_clk_pll_get_freq
+     /tmp/ccwVWXoQ.s:109    .text.pll_clk_pll_get_freq:000000000000006c $d
+     /tmp/ccwVWXoQ.s:114    .text.clkpwr_pll_set_freq:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:120    .text.clkpwr_pll_set_freq:0000000000000000 clkpwr_pll_set_freq
+     /tmp/ccwVWXoQ.s:194    .text.clkpwr_pll_set_freq:0000000000000080 $d
+     /tmp/ccwVWXoQ.s:202    .text.pll_clk_sys_get_src:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:208    .text.pll_clk_sys_get_src:0000000000000000 pll_clk_sys_get_src
+     /tmp/ccwVWXoQ.s:232    .text.pll_clk_sys_get_bclk_freq:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:238    .text.pll_clk_sys_get_bclk_freq:0000000000000000 pll_clk_sys_get_bclk_freq
+     /tmp/ccwVWXoQ.s:275    .text.pll_clk_sys_get_pclk_freq:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:281    .text.pll_clk_sys_get_pclk_freq:0000000000000000 pll_clk_sys_get_pclk_freq
+     /tmp/ccwVWXoQ.s:327    .text.pll_clk_sys_select_src:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:333    .text.pll_clk_sys_select_src:0000000000000000 pll_clk_sys_select_src
+     /tmp/ccwVWXoQ.s:356    .text.clkpwr_sys_set_bclk_freq:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:362    .text.clkpwr_sys_set_bclk_freq:0000000000000000 clkpwr_sys_set_bclk_freq
+     /tmp/ccwVWXoQ.s:403    .text.clkpwr_sys_set_pclk_freq:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:409    .text.clkpwr_sys_set_pclk_freq:0000000000000000 clkpwr_sys_set_pclk_freq
+     /tmp/ccwVWXoQ.s:457    .text.clkpwr_pll_init:0000000000000000 $a
+     /tmp/ccwVWXoQ.s:463    .text.clkpwr_pll_init:0000000000000000 clkpwr_pll_init
+     /tmp/ccwVWXoQ.s:528    .rodata.pll01_pms_predef:0000000000000000 pll01_pms_predef
+     /tmp/ccwVWXoQ.s:524    .rodata.pll01_pms_predef:0000000000000000 $d
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS
